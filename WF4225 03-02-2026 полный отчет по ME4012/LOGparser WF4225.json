@@ -1,0 +1,1227 @@
+{
+  "name": "LOGparser",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "LOGparser",
+        "options": {
+          "noResponseBody": true
+        }
+      },
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2.1,
+      "position": [
+        912,
+        -2880
+      ],
+      "id": "606bbc2d-5d65-4053-865e-3126bc2e874a",
+      "name": "Webhook",
+      "webhookId": "62bcabb1-4964-4f50-9488-179a800bc3fb"
+    },
+    {
+      "parameters": {
+        "jsCode": "// Extract message — FULL REPLACE v3 (adds audio detection + hasAudio)\n// Input: $json.body.updates[0]\n// Output: { text, chatId, login, hasFile, hasAudio, files[] }\n\nfunction normalizeText(s) {\n  return String(s || '').replace(/\\u00A0/g, ' ').trim();\n}\n\nfunction toArrayMaybe(x) {\n  if (!x) return [];\n  if (Array.isArray(x)) return x;\n  return [x];\n}\n\nfunction uniqPushFile(arr, f) {\n  const kind = String(f.kind || '');\n  const id = String(f.file_id || f.id || '');\n  const key = `${kind}|${id}`;\n  if (!id) return;\n  if (arr._seen && arr._seen.has(key)) return;\n  arr._seen = arr._seen || new Set();\n  arr._seen.add(key);\n  arr.push(f);\n}\n\nfunction guessKindByName(name) {\n  const n = String(name || '').toLowerCase();\n  if (/\\.(png|jpg|jpeg|bmp|gif|tif|tiff|webp)$/i.test(n)) return 'image';\n  if (/\\.(ogg|opus|mp3|wav|m4a|aac|flac)$/i.test(n)) return 'audio';\n  return 'file';\n}\n\nconst update = $json?.body?.updates?.[0];\nif (!update) return [];\n\nconst text = normalizeText(update.text || '') || 'Empty';\n\n// chatId/login\nconst chatId = update?.from?.id ?? update?.chat?.id ?? null;\nconst login = update?.from?.login ?? null;\n\nconst files = [];\n\n// images can come in different shapes: images[0] array, images array, or object\nconst imagesRaw = update.images;\nif (imagesRaw) {\n  // sometimes images is [[...]] or [...]\n  const imgs = Array.isArray(imagesRaw) && Array.isArray(imagesRaw[0]) ? imagesRaw[0] : imagesRaw;\n  for (const src of toArrayMaybe(imgs)) {\n    if (!src) continue;\n    const file_id = src.file_id || src.id;\n    uniqPushFile(files, {\n      kind: 'image',\n      file_id,\n      name: src.name || '',\n      size: src.size,\n      width: src.width,\n      height: src.height,\n    });\n  }\n}\n\n// generic file (docs, logs, voice, etc)\nif (update.file) {\n  const f = update.file;\n  const file_id = f.file_id || f.id;\n  const name = f.name || '';\n  const kind = guessKindByName(name);\n  uniqPushFile(files, {\n    kind,\n    file_id,\n    name,\n    size: f.size,\n  });\n}\n\nconst hasFile = files.length > 0;\nconst hasAudio = files.some(f => String(f.kind).toLowerCase() === 'audio');\n\nreturn [{\n  json: {\n    text,\n    chatId,\n    login,\n    hasFile,\n    hasAudio,\n    files,\n  }\n}];\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1136,
+        -2880
+      ],
+      "id": "19949b51-538f-403a-a1a7-cfe2fa336a5a",
+      "name": "Extract message"
+    },
+    {
+      "parameters": {
+        "jsCode": "// Prepare reply — FULL REPLACE v2-B (LOGparser)\n// - Always returns TXT file with final report\n// - File name: \"<archiveBase>.txt\" (fallback logparser_report.txt)\n// - Preserves chatId/login; sendText splitting handled by downstream If file + Send Text/Send file nodes\n\nfunction s(x){ return x == null ? '' : String(x); }\n\nfunction normalizeChatId(chatId) {\n  if (!chatId) return null;\n  const t = String(chatId).trim();\n  return t.includes('/') ? t : `0/0/${t}`;\n}\n\nfunction extractAssistantText(j) {\n  if (!j || typeof j !== 'object') return '';\n  if (typeof j.message?.content === 'string') return j.message.content;\n  if (typeof j.ollama?.message?.content === 'string') return j.ollama.message.content;\n  if (typeof j.response === 'string') return j.response;\n  if (typeof j.text === 'string') return j.text;\n  return '';\n}\n\nfunction stripThink(raw) {\n  return s(raw).replace(/<think>[\\s\\S]*?<\\/think>/gi, '').trim();\n}\n\nfunction baseName(name) {\n  const t = s(name).trim();\n  if (!t) return 'logparser_report';\n  const just = t.split(/[\\\\/]/).pop();\n  return just.replace(/\\.(zip|tgz|tar\\.gz|gz|tar|7z)$/i, '');\n}\n\nconst base = $input.item.json || {};\nconst chatId = normalizeChatId(base.chatId || base.chat_id);\nconst login = base.login || base.user || null;\n\nconst content = stripThink(extractAssistantText(base)).trim() || stripThink(s(base.message?.content)).trim();\nconst fileBase = baseName(base.sourceFileName || base.archiveName || base.fileName || (Array.isArray(base.files) && base.files[0] && base.files[0].name) || '');\nconst outName = `${fileBase}.txt`;\n\n// Add UTF-8 BOM (Excel-friendly if needed)\nconst bom = Buffer.from([0xEF,0xBB,0xBF]);\nconst buf = Buffer.concat([bom, Buffer.from(content || 'N/A', 'utf8')]);\n\nreturn [{\n  json: {\n    ...base,\n    chatId,\n    login,\n    fileName: outName,\n    isFile: true,\n  },\n  binary: {\n    file: {\n      data: buf.toString('base64'),\n      fileName: outName,\n      mimeType: 'text/plain; charset=utf-8',\n    }\n  }\n}];\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        6176,
+        -2880
+      ],
+      "id": "565063e8-274c-48fb-ac57-678ce2ec7dd3",
+      "name": "Prepare reply"
+    },
+    {
+      "parameters": {
+        "dataTableId": {
+          "__rl": true,
+          "value": "64Y6oJPQRzpKmBIv",
+          "mode": "list",
+          "cachedResultName": "Yandex_messages",
+          "cachedResultUrl": "/projects/NzQv03hxe8w3kPzF/datatables/64Y6oJPQRzpKmBIv"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "processed": false,
+            "chatId": "={{$json.chatId}}",
+            "timestamp": "={{Date.now()}}",
+            "text": "={{$json.text}}",
+            "files": "={{ JSON.stringify($json.files || []) }}",
+            "login": "={{$json.login}}"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "chatId",
+              "displayName": "chatId",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "timestamp",
+              "displayName": "timestamp",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "number",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "text",
+              "displayName": "text",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "processed",
+              "displayName": "processed",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "boolean",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "files",
+              "displayName": "files",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "login",
+              "displayName": "login",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {
+          "optimizeBulk": false
+        }
+      },
+      "type": "n8n-nodes-base.dataTable",
+      "typeVersion": 1,
+      "position": [
+        1360,
+        -2880
+      ],
+      "id": "9ad65eeb-29a2-4464-ad74-9f4e418b499b",
+      "name": "Data message"
+    },
+    {
+      "parameters": {
+        "operation": "get",
+        "dataTableId": {
+          "__rl": true,
+          "value": "64Y6oJPQRzpKmBIv",
+          "mode": "list",
+          "cachedResultName": "Yandex_messages",
+          "cachedResultUrl": "/projects/NzQv03hxe8w3kPzF/datatables/64Y6oJPQRzpKmBIv"
+        },
+        "matchType": "allConditions",
+        "filters": {
+          "conditions": [
+            {
+              "keyName": "chatId",
+              "keyValue": "={{$json.chatId}}"
+            },
+            {
+              "keyName": "processed",
+              "condition": "isFalse"
+            }
+          ]
+        },
+        "returnAll": true
+      },
+      "type": "n8n-nodes-base.dataTable",
+      "typeVersion": 1,
+      "position": [
+        1584,
+        -2880
+      ],
+      "id": "e6da9981-aa49-4c0f-8e85-b1eb0d842d22",
+      "name": "Read messages"
+    },
+    {
+      "parameters": {
+        "operation": "update",
+        "dataTableId": {
+          "__rl": true,
+          "value": "64Y6oJPQRzpKmBIv",
+          "mode": "list",
+          "cachedResultName": "Yandex_messages",
+          "cachedResultUrl": "/projects/NzQv03hxe8w3kPzF/datatables/64Y6oJPQRzpKmBIv"
+        },
+        "matchType": "allConditions",
+        "filters": {
+          "conditions": [
+            {
+              "keyName": "chatId",
+              "keyValue": "={{$json.chatId}}"
+            },
+            {
+              "keyName": "processed",
+              "condition": "isFalse"
+            }
+          ]
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "processed": true
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "chatId",
+              "displayName": "chatId",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": true
+            },
+            {
+              "id": "timestamp",
+              "displayName": "timestamp",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "number",
+              "readOnly": false,
+              "removed": true
+            },
+            {
+              "id": "text",
+              "displayName": "text",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": true
+            },
+            {
+              "id": "processed",
+              "displayName": "processed",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "boolean",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "files",
+              "displayName": "files",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": true
+            },
+            {
+              "id": "login",
+              "displayName": "login",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": true
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.dataTable",
+      "typeVersion": 1,
+      "position": [
+        2464,
+        -3072
+      ],
+      "id": "d9ef9064-84c6-4126-b838-f745845774c4",
+      "name": "Update row(s)",
+      "alwaysOutputData": true
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "9762fa70-8640-4f1b-9966-3e747cacf98f",
+              "leftValue": "={{$json[\"isLeader\"]}}",
+              "rightValue": "",
+              "operator": {
+                "type": "boolean",
+                "operation": "true",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        2032,
+        -2880
+      ],
+      "id": "5f84248a-6c4f-40a6-bd01-ffa2d2423e7d",
+      "name": "If  leader"
+    },
+    {
+      "parameters": {
+        "jsCode": "// Code node \"Stop\"\n// Ничего не делаем и останавливаем цепочку для этих сообщений\nreturn [];\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        2464,
+        -2688
+      ],
+      "id": "7d847caa-122a-45dd-bf40-2972576e124e",
+      "name": "Stop"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://botapi.messenger.yandex.net/bot/v1/messages/sendText/",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Authorization",
+              "value": "{{ 'OAuth ' + ($env.YANDEX_BOT_TOKEN_LOGPARSER || '') }}"
+            }
+          ]
+        },
+        "sendBody": true,
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "login",
+              "value": "={{$json.login}}"
+            },
+            {
+              "name": "text",
+              "value": "={{$json.text}}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.3,
+      "position": [
+        6624,
+        -2784
+      ],
+      "id": "10daa7e9-7ffc-4870-81d2-5405dbd15143",
+      "name": "Send Text"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://botapi.messenger.yandex.net/bot/v1/messages/sendFile/",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Authorization",
+              "value": "={{ 'OAuth ' + ($env.YANDEX_BOT_TOKEN_LOGPARSER || '') }}"
+            }
+          ]
+        },
+        "sendBody": true,
+        "contentType": "multipart-form-data",
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "login",
+              "value": "={{$json.login}}"
+            },
+            {
+              "parameterType": "formBinaryData",
+              "name": "document",
+              "inputDataFieldName": "file"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.3,
+      "position": [
+        6624,
+        -2976
+      ],
+      "id": "772b54d8-a4fb-422b-b0a6-a28848ff83c7",
+      "name": "Send file"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "15527451-ad55-4b9e-a7e4-5db6dfdfe946",
+              "leftValue": "={{ !!$binary.file }}",
+              "rightValue": "",
+              "operator": {
+                "type": "boolean",
+                "operation": "true",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        6400,
+        -2880
+      ],
+      "id": "de3674c4-49ae-4939-ac71-717c63aac8e0",
+      "name": "If file"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "59471c9d-4615-4b45-9c46-3e20c1b91d9f",
+              "leftValue": "={{ String($json.klass || '').trim().toLowerCase() === 'storage' }}",
+              "rightValue": "",
+              "operator": {
+                "type": "boolean",
+                "operation": "true",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        3664,
+        -2880
+      ],
+      "id": "7b777789-14c0-48a0-a3ff-23b84521dcb7",
+      "name": "IF klass == \"Storage\""
+    },
+    {
+      "parameters": {
+        "jsCode": "// Storage Structure Extract — FULL REPLACE v2-B-FIX\n// FIX: return { ...base, ... }\n\nconst https = require('https');\nconst fs = require('fs');\nconst path = require('path');\nconst os = require('os');\nconst { execFileSync } = require('child_process');\nconst zlib = require('zlib');\n\nconst base = $input.item.json || {};\nconst s = (x) => (x == null ? '' : String(x));\n\nconst MAX_CHARS = Number($env.STRUCTURE_EXTRACT_MAX_CHARS || 900000);\n\nfunction getToken() {\n  const t2 = s($env?.YANDEX_BOT_TOKEN_LOGPARSER || '').trim();\n  if (t2) return t2;\n  return s($env?.YANDEX_BOT_TOKEN || '').trim();\n}\nfunction safeHead(buf, n=200){\n  const b = Buffer.isBuffer(buf) ? buf : Buffer.from(String(buf||''), 'utf8');\n  return b.slice(0, n).toString('utf8').replace(/[^\\x09\\x0a\\x0d\\x20-\\x7e]+/g,'.');\n}\nfunction looksLikeJson(headers, buf){\n  const ct = s(headers?.['content-type']).toLowerCase();\n  if (ct.includes('application/json')) return true;\n  const h = safeHead(buf, 60).trim();\n  return h.startsWith('{') || h.startsWith('[');\n}\nfunction extractYandexJsonError(buf){\n  try {\n    const obj = JSON.parse(buf.toString('utf8'));\n    if (obj && obj.ok === false) return obj.description || obj.code || 'getFile failed';\n  } catch {}\n  return null;\n}\nfunction httpRequestBuffer({ method, hostname, path, headers }, bodyBuf) {\n  return new Promise((resolve, reject) => {\n    const req = https.request({ method, hostname, path, headers }, (res) => {\n      const chunks = [];\n      res.on('data', (d) => chunks.push(Buffer.isBuffer(d) ? d : Buffer.from(d)));\n      res.on('end', () => resolve({ statusCode: (res.statusCode|0), headers: res.headers||{}, buf: Buffer.concat(chunks) }));\n    });\n    req.on('error', reject);\n    if (bodyBuf && bodyBuf.length) req.write(bodyBuf);\n    req.end();\n  });\n}\nasync function yandexGetFileBuffer(fileId) {\n  const token = getToken();\n  if (!token) throw new Error('YANDEX_BOT_TOKEN_LOGPARSER/YANDEX_BOT_TOKEN is not set');\n  if (!fileId) throw new Error('file_id is empty');\n\n  const body = Buffer.from(JSON.stringify({ file_id: fileId }), 'utf8');\n  const r1 = await httpRequestBuffer(\n    {\n      method: 'POST',\n      hostname: 'botapi.messenger.yandex.net',\n      path: '/bot/v1/messages/getFile/',\n      headers: {\n        'Authorization': `OAuth ${token}`,\n        'Content-Type': 'application/json',\n        'Content-Length': String(body.length),\n      },\n    },\n    body\n  );\n\n  if (looksLikeJson(r1.headers, r1.buf)) {\n    const err = extractYandexJsonError(r1.buf);\n    if (err) throw new Error(err);\n  }\n  if (r1.statusCode >= 200 && r1.statusCode < 300) return r1.buf;\n\n  const p = `/bot/v1/messages/getFile/?file_id=${encodeURIComponent(fileId)}`;\n  const r2 = await httpRequestBuffer(\n    { method: 'GET', hostname: 'botapi.messenger.yandex.net', path: p, headers: { 'Authorization': `OAuth ${token}` } },\n    null\n  );\n\n  if (looksLikeJson(r2.headers, r2.buf)) {\n    const err = extractYandexJsonError(r2.buf);\n    if (err) throw new Error(err);\n  }\n  if (r2.statusCode >= 200 && r2.statusCode < 300) return r2.buf;\n\n  throw new Error(`getFile failed: POST=${r1.statusCode} head=${safeHead(r1.buf)} | GET=${r2.statusCode} head=${safeHead(r2.buf)}`);\n}\n\nfunction sniffTypeByMagic(buf, nameLower) {\n  if (buf.length >= 4 && buf[0] === 0x50 && buf[1] === 0x4b && buf[2] === 0x03 && buf[3] === 0x04) return 'zip';\n  if (buf.length >= 2 && buf[0] === 0x1f && buf[1] === 0x8b) {\n    if (nameLower.endsWith('.tar.gz') || nameLower.endsWith('.tgz')) return 'targz';\n    return 'gz';\n  }\n  if (buf.length >= 262 && buf.slice(257,262).toString('utf8') === 'ustar') return 'tar';\n  return 'plain';\n}\n\nfunction ensureDir(p){ fs.mkdirSync(p, { recursive:true }); }\nfunction decodeSmart(buf){\n  if (!Buffer.isBuffer(buf)) buf = Buffer.from(String(buf||''), 'utf8');\n  if (buf.length >= 2 && buf[0]===0xff && buf[1]===0xfe) return buf.slice(2).toString('utf16le');\n  if (buf.length >= 2 && buf[0]===0xfe && buf[1]===0xff) {\n    const swapped = Buffer.allocUnsafe(buf.length-2);\n    for (let i=2;i<buf.length;i+=2){ swapped[i-2]=buf[i+1]||0; swapped[i-1]=buf[i]||0; }\n    return swapped.toString('utf16le');\n  }\n  const nul = buf.slice(0, Math.min(buf.length, 20000)).includes(0);\n  if (nul) return '';\n  return buf.toString('utf8');\n}\n\nfunction walkFiles(root){\n  const out = [];\n  const stack = [root];\n  while (stack.length) {\n    const p = stack.pop();\n    const st = fs.statSync(p);\n    if (st.isDirectory()) {\n      for (const name of fs.readdirSync(p)) stack.push(path.join(p, name));\n    } else if (st.isFile()) out.push(p);\n  }\n  return out;\n}\n\nfunction pickPrimaryLog(files){\n  let best=null, bestScore=-1;\n  for (const fp of files) {\n    const name = path.basename(fp).toLowerCase();\n    const rel = fp.toLowerCase();\n    let sc = 0;\n    if (/^store_.*\\.logs$/.test(name)) sc += 100;\n    if (name.endsWith('.logs')) sc += 20;\n    if (name.endsWith('.log') || name.endsWith('.txt')) sc += 5;\n    if (rel.includes('store')) sc += 10;\n    if (rel.includes('messages')) sc -= 5;\n    const st = fs.statSync(fp);\n    sc += Math.min(10, Math.floor(st.size / 50_000_000));\n    if (sc > bestScore) { bestScore=sc; best=fp; }\n  }\n  return best;\n}\n\nfunction extractCliBlock(text, marker, maxLines=3500){\n  const lines = text.split(/\\r?\\n/);\n  let i=-1;\n  for (let k=0;k<lines.length;k++){\n    if (lines[k].trim() === marker) { i=k; break; }\n  }\n  if (i<0) return '';\n  const out=[];\n  for (let k=i; k<lines.length && out.length<maxLines; k++){\n    const ln = lines[k];\n    if (k>i && ln.startsWith('# ') && ln.trim() !== marker) break;\n    out.push(ln);\n  }\n  return out.join('\\n').trim();\n}\n\nconst fileId = s(base.sourceFileId).trim();\nconst fileName = s(base.sourceFileName).trim() || 'attachment.bin';\nif (!fileId) throw new Error('sourceFileId is empty');\n\nconst buf = await yandexGetFileBuffer(fileId);\nconst type = sniffTypeByMagic(buf, fileName.toLowerCase());\n\nconst tmp = fs.mkdtempSync(path.join(os.tmpdir(), 'st-struct-'));\nconst outDir = path.join(tmp, 'out');\nensureDir(outDir);\n\ntry {\n  if (type === 'zip' || type === 'tar' || type === 'targz') {\n    const inFile = path.join(tmp, 'in' + (type==='zip'?'.zip': type==='tar'?'.tar':'.tgz'));\n    fs.writeFileSync(inFile, buf);\n    if (type === 'zip') execFileSync('unzip', ['-qq', inFile, '-d', outDir]);\n    if (type === 'tar') execFileSync('tar', ['-xf', inFile, '-C', outDir]);\n    if (type === 'targz') execFileSync('tar', ['-xzf', inFile, '-C', outDir]);\n  } else if (type === 'gz') {\n    const gunz = zlib.gunzipSync(buf);\n    fs.writeFileSync(path.join(outDir, path.basename(fileName.replace(/\\.gz$/i,'')) || 'file.txt'), gunz);\n  } else {\n    fs.writeFileSync(path.join(outDir, path.basename(fileName) || 'file.txt'), buf);\n  }\n\n  const files = walkFiles(outDir);\n  const primary = pickPrimaryLog(files) || files[0];\n  let text = '';\n  if (primary) text = decodeSmart(fs.readFileSync(primary));\n\n  const b1 = extractCliBlock(text, '# show enclosures', 5000);\n  const b2 = extractCliBlock(text, '# show redundancy-mode', 1200);\n  const b3 = extractCliBlock(text, '# show versions detail', 1800);\n\n  let digest = [\n    b1 ? '=== # show enclosures ===\\n' + b1 : '',\n    b2 ? '=== # show redundancy-mode ===\\n' + b2 : '',\n    b3 ? '=== # show versions detail ===\\n' + b3 : '',\n  ].filter(Boolean).join('\\n\\n');\n\n  if (!digest) digest = '[n8n] No structure blocks found.';\n  if (digest.length > MAX_CHARS) digest = digest.slice(0, MAX_CHARS) + '\\n[n8n] TRUNCATED';\n\n  return [{ json: { ...base, digest_structure_text: digest } }];\n\n} finally {\n  try { fs.rmSync(tmp, { recursive:true, force:true }); } catch {}\n}\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        3968,
+        -3168
+      ],
+      "id": "f9524dcd-b051-49c9-84c1-7b4c41c0ab13",
+      "name": "Storage Structure Extract"
+    },
+    {
+      "parameters": {
+        "jsCode": "// Storage Disks Extract — FULL REPLACE v2-B-FIX3\n// FIX: \".base\" -> \"...base\" (this was a hard SyntaxError)\n\nconst https = require('https');\nconst fs = require('fs');\nconst path = require('path');\nconst os = require('os');\nconst { execFileSync } = require('child_process');\nconst zlib = require('zlib');\n\nconst base = $input.item.json || {};\nconst s = (x) => (x == null ? '' : String(x));\n\nconst MAX_CHARS = Number($env.DISKS_EXTRACT_MAX_CHARS || 1200000);\n\nfunction getToken() {\n  const t2 = s($env?.YANDEX_BOT_TOKEN_LOGPARSER || '').trim();\n  if (t2) return t2;\n  return s($env?.YANDEX_BOT_TOKEN || '').trim();\n}\nfunction safeHead(buf, n=200){\n  const b = Buffer.isBuffer(buf) ? buf : Buffer.from(String(buf||''), 'utf8');\n  return b.slice(0, n).toString('utf8').replace(/[^\\x09\\x0a\\x0d\\x20-\\x7e]+/g,'.');\n}\nfunction looksLikeJson(headers, buf){\n  const ct = s(headers?.['content-type']).toLowerCase();\n  if (ct.includes('application/json')) return true;\n  const h = safeHead(buf, 60).trim();\n  return h.startsWith('{') || h.startsWith('[');\n}\nfunction extractYandexJsonError(buf){\n  try {\n    const obj = JSON.parse(buf.toString('utf8'));\n    if (obj && obj.ok === false) return obj.description || obj.code || 'getFile failed';\n  } catch {}\n  return null;\n}\nfunction httpRequestBuffer({ method, hostname, path, headers }, bodyBuf) {\n  return new Promise((resolve, reject) => {\n    const req = https.request({ method, hostname, path, headers }, (res) => {\n      const chunks = [];\n      res.on('data', (d) => chunks.push(Buffer.isBuffer(d) ? d : Buffer.from(d)));\n      res.on('end', () => resolve({ statusCode: (res.statusCode|0), headers: res.headers||{}, buf: Buffer.concat(chunks) }));\n    });\n    req.on('error', reject);\n    if (bodyBuf && bodyBuf.length) req.write(bodyBuf);\n    req.end();\n  });\n}\nasync function yandexGetFileBuffer(fileId) {\n  const token = getToken();\n  if (!token) throw new Error('YANDEX_BOT_TOKEN_LOGPARSER/YANDEX_BOT_TOKEN is not set');\n  if (!fileId) throw new Error('file_id is empty');\n\n  const body = Buffer.from(JSON.stringify({ file_id: fileId }), 'utf8');\n  const r1 = await httpRequestBuffer(\n    {\n      method: 'POST',\n      hostname: 'botapi.messenger.yandex.net',\n      path: '/bot/v1/messages/getFile/',\n      headers: {\n        'Authorization': `OAuth ${token}`,\n        'Content-Type': 'application/json',\n        'Content-Length': String(body.length),\n      },\n    },\n    body\n  );\n\n  if (looksLikeJson(r1.headers, r1.buf)) {\n    const err = extractYandexJsonError(r1.buf);\n    if (err) throw new Error(err);\n  }\n  if (r1.statusCode >= 200 && r1.statusCode < 300) return r1.buf;\n\n  const p = `/bot/v1/messages/getFile/?file_id=${encodeURIComponent(fileId)}`;\n  const r2 = await httpRequestBuffer(\n    { method: 'GET', hostname: 'botapi.messenger.yandex.net', path: p, headers: { 'Authorization': `OAuth ${token}` } },\n    null\n  );\n\n  if (looksLikeJson(r2.headers, r2.buf)) {\n    const err = extractYandexJsonError(r2.buf);\n    if (err) throw new Error(err);\n  }\n  if (r2.statusCode >= 200 && r2.statusCode < 300) return r2.buf;\n\n  throw new Error(`getFile failed: POST=${r1.statusCode} head=${safeHead(r1.buf)} | GET=${r2.statusCode} head=${safeHead(r2.buf)}`);\n}\n\nfunction sniffTypeByMagic(buf, nameLower) {\n  if (buf.length >= 4 && buf[0] === 0x50 && buf[1] === 0x4b && buf[2] === 0x03 && buf[3] === 0x04) return 'zip';\n  if (buf.length >= 2 && buf[0] === 0x1f && buf[1] === 0x8b) {\n    if (nameLower.endsWith('.tar.gz') || nameLower.endsWith('.tgz')) return 'targz';\n    return 'gz';\n  }\n  if (buf.length >= 262 && buf.slice(257,262).toString('utf8') === 'ustar') return 'tar';\n  return 'plain';\n}\nfunction ensureDir(p){ fs.mkdirSync(p, { recursive:true }); }\nfunction decodeSmart(buf){\n  if (!Buffer.isBuffer(buf)) buf = Buffer.from(String(buf||''), 'utf8');\n  if (buf.length >= 2 && buf[0]===0xff && buf[1]===0xfe) return buf.slice(2).toString('utf16le');\n  const nul = buf.slice(0, Math.min(buf.length, 20000)).includes(0);\n  if (nul) return '';\n  return buf.toString('utf8');\n}\nfunction walkFiles(root){\n  const out = [];\n  const stack = [root];\n  while (stack.length) {\n    const p = stack.pop();\n    const st = fs.statSync(p);\n    if (st.isDirectory()) for (const name of fs.readdirSync(p)) stack.push(path.join(p, name));\n    else if (st.isFile()) out.push(p);\n  }\n  return out;\n}\nfunction pickPrimaryLog(files){\n  let best=null, bestScore=-1;\n  for (const fp of files) {\n    const name = path.basename(fp).toLowerCase();\n    const rel = fp.toLowerCase();\n    let sc = 0;\n    if (/^store_.*\\.logs$/.test(name)) sc += 100;\n    if (name.endsWith('.logs')) sc += 20;\n    if (name.endsWith('.log') || name.endsWith('.txt')) sc += 5;\n    if (rel.includes('store')) sc += 10;\n    if (rel.includes('messages')) sc -= 5;\n    const st = fs.statSync(fp);\n    sc += Math.min(10, Math.floor(st.size / 50_000_000));\n    if (sc > bestScore) { bestScore=sc; best=fp; }\n  }\n  return best;\n}\nfunction extractCliBlock(text, marker, maxLines=20000){\n  const lines = text.split(/\\r?\\n/);\n  let i=-1;\n  for (let k=0;k<lines.length;k++){\n    if (lines[k].trim() === marker) { i=k; break; }\n  }\n  if (i<0) return '';\n  const out=[];\n  for (let k=i; k<lines.length && out.length<maxLines; k++){\n    const ln = lines[k];\n    if (k>i && ln.startsWith('# ') && ln.trim() !== marker) break;\n    out.push(ln);\n  }\n  return out.join('\\n').trim();\n}\n\nconst fileId = s(base.sourceFileId).trim();\nconst fileName = s(base.sourceFileName).trim() || 'attachment.bin';\nif (!fileId) throw new Error('sourceFileId is empty');\n\nconst buf = await yandexGetFileBuffer(fileId);\nconst type = sniffTypeByMagic(buf, fileName.toLowerCase());\n\nconst tmp = fs.mkdtempSync(path.join(os.tmpdir(), 'st-disks-'));\nconst outDir = path.join(tmp, 'out');\nensureDir(outDir);\n\ntry {\n  if (type === 'zip' || type === 'tar' || type === 'targz') {\n    const inFile = path.join(tmp, 'in' + (type==='zip'?'.zip': type==='tar'?'.tar':'.tgz'));\n    fs.writeFileSync(inFile, buf);\n    if (type === 'zip') execFileSync('unzip', ['-qq', inFile, '-d', outDir]);\n    if (type === 'tar') execFileSync('tar', ['-xf', inFile, '-C', outDir]);\n    if (type === 'targz') execFileSync('tar', ['-xzf', inFile, '-C', outDir]);\n  } else if (type === 'gz') {\n    const gunz = zlib.gunzipSync(buf);\n    fs.writeFileSync(path.join(outDir, path.basename(fileName.replace(/\\.gz$/i,'')) || 'file.txt'), gunz);\n  } else {\n    fs.writeFileSync(path.join(outDir, path.basename(fileName) || 'file.txt'), buf);\n  }\n\n  const files = walkFiles(outDir);\n  const primary = pickPrimaryLog(files) || files[0];\n  let text = '';\n  if (primary) text = decodeSmart(fs.readFileSync(primary));\n\n  const b1 = extractCliBlock(text, '# show disks', 20000);\n  let digest = b1 ? ('=== # show disks ===\\n' + b1) : '[n8n] No disks block found.';\n  if (digest.length > MAX_CHARS) digest = digest.slice(0, MAX_CHARS) + '\\n[n8n] TRUNCATED';\n\n  return [{ json: { ...base, digest_disks_text: digest } }];\n\n} finally {\n  try { fs.rmSync(tmp, { recursive:true, force:true }); } catch {}\n}\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        3968,
+        -2976
+      ],
+      "id": "9b2cde03-2d39-4c38-a623-045cc3718ade",
+      "name": "Storage Disks Extract"
+    },
+    {
+      "parameters": {
+        "jsCode": "// Storage Periphery Extract — FULL REPLACE v2-B-FIX\n// FIX: return { ...base, ... }\n\nconst https = require('https');\nconst fs = require('fs');\nconst path = require('path');\nconst os = require('os');\nconst { execFileSync } = require('child_process');\nconst zlib = require('zlib');\n\nconst base = $input.item.json || {};\nconst s = (x) => (x == null ? '' : String(x));\n\nconst MAX_CHARS = Number($env.PERIPHERY_EXTRACT_MAX_CHARS || 800000);\n\nfunction getToken() {\n  const t2 = s($env?.YANDEX_BOT_TOKEN_LOGPARSER || '').trim();\n  if (t2) return t2;\n  return s($env?.YANDEX_BOT_TOKEN || '').trim();\n}\nfunction safeHead(buf, n=200){\n  const b = Buffer.isBuffer(buf) ? buf : Buffer.from(String(buf||''), 'utf8');\n  return b.slice(0, n).toString('utf8').replace(/[^\\x09\\x0a\\x0d\\x20-\\x7e]+/g,'.');\n}\nfunction looksLikeJson(headers, buf){\n  const ct = s(headers?.['content-type']).toLowerCase();\n  if (ct.includes('application/json')) return true;\n  const h = safeHead(buf, 60).trim();\n  return h.startsWith('{') || h.startsWith('[');\n}\nfunction extractYandexJsonError(buf){\n  try {\n    const obj = JSON.parse(buf.toString('utf8'));\n    if (obj && obj.ok === false) return obj.description || obj.code || 'getFile failed';\n  } catch {}\n  return null;\n}\nfunction httpRequestBuffer({ method, hostname, path, headers }, bodyBuf) {\n  return new Promise((resolve, reject) => {\n    const req = https.request({ method, hostname, path, headers }, (res) => {\n      const chunks = [];\n      res.on('data', (d) => chunks.push(Buffer.isBuffer(d) ? d : Buffer.from(d)));\n      res.on('end', () => resolve({ statusCode: (res.statusCode|0), headers: res.headers||{}, buf: Buffer.concat(chunks) }));\n    });\n    req.on('error', reject);\n    if (bodyBuf && bodyBuf.length) req.write(bodyBuf);\n    req.end();\n  });\n}\nasync function yandexGetFileBuffer(fileId) {\n  const token = getToken();\n  if (!token) throw new Error('YANDEX_BOT_TOKEN_LOGPARSER/YANDEX_BOT_TOKEN is not set');\n  if (!fileId) throw new Error('file_id is empty');\n\n  const body = Buffer.from(JSON.stringify({ file_id: fileId }), 'utf8');\n  const r1 = await httpRequestBuffer(\n    {\n      method: 'POST',\n      hostname: 'botapi.messenger.yandex.net',\n      path: '/bot/v1/messages/getFile/',\n      headers: {\n        'Authorization': `OAuth ${token}`,\n        'Content-Type': 'application/json',\n        'Content-Length': String(body.length),\n      },\n    },\n    body\n  );\n\n  if (looksLikeJson(r1.headers, r1.buf)) {\n    const err = extractYandexJsonError(r1.buf);\n    if (err) throw new Error(err);\n  }\n  if (r1.statusCode >= 200 && r1.statusCode < 300) return r1.buf;\n\n  const p = `/bot/v1/messages/getFile/?file_id=${encodeURIComponent(fileId)}`;\n  const r2 = await httpRequestBuffer(\n    { method: 'GET', hostname: 'botapi.messenger.yandex.net', path: p, headers: { 'Authorization': `OAuth ${token}` } },\n    null\n  );\n\n  if (looksLikeJson(r2.headers, r2.buf)) {\n    const err = extractYandexJsonError(r2.buf);\n    if (err) throw new Error(err);\n  }\n  if (r2.statusCode >= 200 && r2.statusCode < 300) return r2.buf;\n\n  throw new Error(`getFile failed: POST=${r1.statusCode} head=${safeHead(r1.buf)} | GET=${r2.statusCode} head=${safeHead(r2.buf)}`);\n}\n\nfunction sniffTypeByMagic(buf, nameLower) {\n  if (buf.length >= 4 && buf[0] === 0x50 && buf[1] === 0x4b && buf[2] === 0x03 && buf[3] === 0x04) return 'zip';\n  if (buf.length >= 2 && buf[0] === 0x1f && buf[1] === 0x8b) {\n    if (nameLower.endsWith('.tar.gz') || nameLower.endsWith('.tgz')) return 'targz';\n    return 'gz';\n  }\n  if (buf.length >= 262 && buf.slice(257,262).toString('utf8') === 'ustar') return 'tar';\n  return 'plain';\n}\nfunction ensureDir(p){ fs.mkdirSync(p, { recursive:true }); }\nfunction decodeSmart(buf){\n  if (!Buffer.isBuffer(buf)) buf = Buffer.from(String(buf||''), 'utf8');\n  if (buf.length >= 2 && buf[0]===0xff && buf[1]===0xfe) return buf.slice(2).toString('utf16le');\n  const nul = buf.slice(0, Math.min(buf.length, 20000)).includes(0);\n  if (nul) return '';\n  return buf.toString('utf8');\n}\nfunction walkFiles(root){\n  const out = [];\n  const stack = [root];\n  while (stack.length) {\n    const p = stack.pop();\n    const st = fs.statSync(p);\n    if (st.isDirectory()) for (const name of fs.readdirSync(p)) stack.push(path.join(p, name));\n    else if (st.isFile()) out.push(p);\n  }\n  return out;\n}\nfunction pickPrimaryLog(files){\n  let best=null, bestScore=-1;\n  for (const fp of files) {\n    const name = path.basename(fp).toLowerCase();\n    const rel = fp.toLowerCase();\n    let sc = 0;\n    if (/^store_.*\\.logs$/.test(name)) sc += 100;\n    if (name.endsWith('.logs')) sc += 20;\n    if (name.endsWith('.log') || name.endsWith('.txt')) sc += 5;\n    if (rel.includes('store')) sc += 10;\n    if (rel.includes('messages')) sc -= 5;\n    const st = fs.statSync(fp);\n    sc += Math.min(10, Math.floor(st.size / 50_000_000));\n    if (sc > bestScore) { bestScore=sc; best=fp; }\n  }\n  return best;\n}\nfunction extractCliBlock(text, marker, maxLines=6000){\n  const lines = text.split(/\\r?\\n/);\n  let i=-1;\n  for (let k=0;k<lines.length;k++){\n    if (lines[k].trim() === marker) { i=k; break; }\n  }\n  if (i<0) return '';\n  const out=[];\n  for (let k=i; k<lines.length && out.length<maxLines; k++){\n    const ln = lines[k];\n    if (k>i && ln.startsWith('# ') && ln.trim() !== marker) break;\n    out.push(ln);\n  }\n  return out.join('\\n').trim();\n}\nfunction extractSfpLines(text){\n  const lines = text.split(/\\r?\\n/);\n  const out=[];\n  const re = /\\b(sfp-status|sfp-present|sfp-vendor|sfp-serial|sfp-part-number|sfp-partnumber|sfp-speed|sfp-name|sfp-connector)\\b/i;\n  for (let i=0;i<lines.length;i++){\n    const ln = lines[i];\n    if (re.test(ln)) {\n      out.push(ln.trim());\n      if (out.length >= 1200) break;\n    }\n  }\n  return out.join('\\n').trim();\n}\n\nconst fileId = s(base.sourceFileId).trim();\nconst fileName = s(base.sourceFileName).trim() || 'attachment.bin';\nif (!fileId) throw new Error('sourceFileId is empty');\n\nconst buf = await yandexGetFileBuffer(fileId);\nconst type = sniffTypeByMagic(buf, fileName.toLowerCase());\n\nconst tmp = fs.mkdtempSync(path.join(os.tmpdir(), 'st-per-'));\nconst outDir = path.join(tmp, 'out');\nensureDir(outDir);\n\ntry {\n  if (type === 'zip' || type === 'tar' || type === 'targz') {\n    const inFile = path.join(tmp, 'in' + (type==='zip'?'.zip': type==='tar'?'.tar':'.tgz'));\n    fs.writeFileSync(inFile, buf);\n    if (type === 'zip') execFileSync('unzip', ['-qq', inFile, '-d', outDir]);\n    if (type === 'tar') execFileSync('tar', ['-xf', inFile, '-C', outDir]);\n    if (type === 'targz') execFileSync('tar', ['-xzf', inFile, '-C', outDir]);\n  } else if (type === 'gz') {\n    const gunz = zlib.gunzipSync(buf);\n    fs.writeFileSync(path.join(outDir, path.basename(fileName.replace(/\\.gz$/i,'')) || 'file.txt'), gunz);\n  } else {\n    fs.writeFileSync(path.join(outDir, path.basename(fileName) || 'file.txt'), buf);\n  }\n\n  const files = walkFiles(outDir);\n  const primary = pickPrimaryLog(files) || files[0];\n  let text = '';\n  if (primary) text = decodeSmart(fs.readFileSync(primary));\n\n  const psu = extractCliBlock(text, '# show power-supplies', 8000);\n  const sfp = extractSfpLines(text);\n\n  let digest = [\n    psu ? '=== # show power-supplies ===\\n' + psu : '',\n    sfp ? '=== SFP (xml lines) ===\\n' + sfp : '',\n  ].filter(Boolean).join('\\n\\n');\n\n  if (!digest) digest = '[n8n] No periphery blocks found.';\n  if (digest.length > MAX_CHARS) digest = digest.slice(0, MAX_CHARS) + '\\n[n8n] TRUNCATED';\n\n  return [{ json: { ...base, digest_periphery_text: digest } }];\n\n} finally {\n  try { fs.rmSync(tmp, { recursive:true, force:true }); } catch {}\n}\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        3968,
+        -2784
+      ],
+      "id": "546248a9-2970-4276-b6ba-fea431dfa6c7",
+      "name": "Storage Periphery Extract"
+    },
+    {
+      "parameters": {
+        "jsCode": "// Storage Error Candidates — FULL REPLACE v3.3.1-slim-fixbase+digest\n// Fixes:\n// 1) catch: ...base -> ...base\n// 2) add compact digest_errors_text (string, capped) for downstream compatibility\n// 3) still NO huge structured arrays (no errors_index with nominals/samples)\n\nconst https = require('https');\nconst fs = require('fs');\nconst path = require('path');\nconst os = require('os');\nconst { execFileSync } = require('child_process');\nconst zlib = require('zlib');\n\nconst base = $input.item.json || {};\nconst s = (x) => (x == null ? '' : String(x));\n\nconst MAX_CHARS = Number($env.ERRORS_EXTRACT_MAX_CHARS || 900000);\nconst CONTEXT = Number($env.ERRORS_EXTRACT_CONTEXT_LINES || 2);\nconst MAX_MATCHES = Number($env.ERRORS_EXTRACT_MAX_MATCHES || 2000);\nconst PER_TERM_LIMIT = Number($env.ERRORS_EXTRACT_PER_TERM_LIMIT || 80);\nconst MAX_FILE_BYTES = Number($env.ERRORS_EXTRACT_MAX_FILE_BYTES || 180_000_000);\n\n// compact index text caps\nconst INDEX_MAX_CHARS = Number($env.ERRORS_INDEX_MAX_CHARS || 260000);\nconst INDEX_MAX_SIGS = Number($env.ERRORS_INDEX_MAX_SIGS || 250);\nconst INDEX_MAX_NOMINALS_PER_SIG = Number($env.ERRORS_INDEX_MAX_NOMINALS_PER_SIG || 200);\n\n// confirmed list caps\nconst CONFIRMED_MAX = Number($env.ERRORS_CONFIRMED_MAX || 250);\nconst CONFIRMED_EVIDENCE_MAX = Number($env.ERRORS_CONFIRMED_EVIDENCE_MAX || 260);\n\n// NEW: compact digest for downstream (string only)\nconst DIGEST_MAX_CHARS = Number($env.ERRORS_DIGEST_MAX_CHARS || 220000);\n\nconst ALLOW_HEX = String($env.ERRORS_ALLOW_HEX || '0') === '1'; // default OFF\n\nfunction escapeRegex(x) { return s(x).replace(/[.*+?^${}()|[\\]\\\\]/g, '\\\\$&'); }\nfunction decodeXmlEntities(str) {\n  return s(str)\n    .replace(/&lt;/g, '<')\n    .replace(/&gt;/g, '>')\n    .replace(/&quot;/g, '\"')\n    .replace(/&apos;/g, \"'\")\n    .replace(/&amp;/g, '&');\n}\n\nfunction isHexOnlyToken(t) {\n  const x = s(t).trim();\n  return /^0x[0-9a-f]+$/i.test(x);\n}\n\nfunction getToken() {\n  const t2 = s($env?.YANDEX_BOT_TOKEN_LOGPARSER || '').trim();\n  if (t2) return t2;\n  return s($env?.YANDEX_BOT_TOKEN || '').trim();\n}\n\nfunction safeHead(buf, n = 200) {\n  const b = Buffer.isBuffer(buf) ? buf : Buffer.from(String(buf || ''), 'utf8');\n  return b.slice(0, n).toString('utf8').replace(/[^\\x09\\x0a\\x0d\\x20-\\x7e]+/g, '.');\n}\nfunction looksLikeJson(headers, buf) {\n  const ct = s(headers?.['content-type']).toLowerCase();\n  if (ct.includes('application/json')) return true;\n  const h = safeHead(buf, 60).trim();\n  return h.startsWith('{') || h.startsWith('[');\n}\nfunction extractYandexJsonError(buf) {\n  try {\n    const obj = JSON.parse(buf.toString('utf8'));\n    if (obj && obj.ok === false && obj.description) return String(obj.description);\n    if (obj && obj.error) return String(obj.error);\n  } catch {}\n  return '';\n}\n\nfunction httpRequestBuffer(opts, bodyBuf) {\n  return new Promise((resolve, reject) => {\n    const req = https.request(opts, (res) => {\n      const chunks = [];\n      res.on('data', (d) => chunks.push(Buffer.isBuffer(d) ? d : Buffer.from(d)));\n      res.on('end', () => resolve({ statusCode: (res.statusCode | 0), headers: res.headers || {}, buf: Buffer.concat(chunks) }));\n    });\n    req.on('error', reject);\n    if (bodyBuf && bodyBuf.length) req.write(bodyBuf);\n    req.end();\n  });\n}\n\nasync function yandexGetFileBuffer(fileId) {\n  const token = getToken();\n  if (!token) throw new Error('YANDEX_BOT_TOKEN_LOGPARSER/YANDEX_BOT_TOKEN is not set');\n  if (!fileId) throw new Error('file_id is empty');\n\n  const body = Buffer.from(JSON.stringify({ file_id: fileId }), 'utf8');\n  const r1 = await httpRequestBuffer(\n    {\n      method: 'POST',\n      hostname: 'botapi.messenger.yandex.net',\n      path: '/bot/v1/messages/getFile/',\n      headers: {\n        'Authorization': `OAuth ${token}`,\n        'Content-Type': 'application/json',\n        'Content-Length': String(body.length),\n      },\n    },\n    body\n  );\n\n  if (looksLikeJson(r1.headers, r1.buf)) {\n    const err = extractYandexJsonError(r1.buf);\n    if (err) throw new Error(err);\n  }\n  if (r1.statusCode >= 200 && r1.statusCode < 300) return r1.buf;\n\n  const p = `/bot/v1/messages/getFile/?file_id=${encodeURIComponent(fileId)}`;\n  const r2 = await httpRequestBuffer(\n    { method: 'GET', hostname: 'botapi.messenger.yandex.net', path: p, headers: { 'Authorization': `OAuth ${token}` } },\n    null\n  );\n\n  if (looksLikeJson(r2.headers, r2.buf)) {\n    const err = extractYandexJsonError(r2.buf);\n    if (err) throw new Error(err);\n  }\n  if (r2.statusCode >= 200 && r2.statusCode < 300) return r2.buf;\n\n  throw new Error(`getFile failed: POST=${r1.statusCode} head=${safeHead(r1.buf)} | GET=${r2.statusCode} head=${safeHead(r2.buf)}`);\n}\n\nfunction ensureDir(p) { fs.mkdirSync(p, { recursive: true }); }\n\nfunction gunzipToFile(gzPath, outPath) {\n  const gz = fs.readFileSync(gzPath);\n  const out = zlib.gunzipSync(gz);\n  fs.writeFileSync(outPath, out);\n}\n\nfunction isBinaryFileQuick(fp) {\n  try {\n    const fd = fs.openSync(fp, 'r');\n    const b = Buffer.alloc(32768);\n    const n = fs.readSync(fd, b, 0, b.length, 0);\n    fs.closeSync(fd);\n    const head = b.slice(0, n);\n    return head.includes(0);\n  } catch {\n    return true;\n  }\n}\n\nfunction walkFiles(root) {\n  const out = [];\n  const stack = [root];\n  while (stack.length) {\n    const p = stack.pop();\n    let st;\n    try { st = fs.statSync(p); } catch { continue; }\n    if (st.isDirectory()) {\n      let kids = [];\n      try { kids = fs.readdirSync(p).map((n) => path.join(p, n)); } catch {}\n      for (const k of kids) stack.push(k);\n    } else if (st.isFile()) out.push(p);\n  }\n  return out;\n}\n\n// ---------- XLSX catalog ----------\nfunction chooseKeywordFilePath() {\n  const envP = s($env.STORAGE_ERROR_KEYWORDS_XLSX || '').trim();\n  const candidates = [];\n  if (envP) candidates.push(envP);\n  candidates.push('/srv/yadisk/LLM QLoRA/LOGparser/storage_error_keywords.xlsx');\n  candidates.push('/srv/ydisk/yadisk/LLM QLoRA/LOGparser/storage_error_keywords.xlsx');\n  for (const p of candidates) {\n    const pp = p.replace(/\\\\/g, '/');\n    try { if (fs.existsSync(pp) && fs.statSync(pp).isFile()) return pp; } catch {}\n  }\n  return '';\n}\nfunction xlsxReadEntry(xlsxPath, entry) {\n  const buf = execFileSync('unzip', ['-p', xlsxPath, entry], { maxBuffer: 50 * 1024 * 1024 });\n  return buf.toString('utf8');\n}\nfunction parseSheetColumnA(xml) {\n  const out = [];\n  const re = /<c[^>]*\\sr=\"A(\\d+)\"[^>]*t=\"inlineStr\"[^>]*>[\\s\\S]*?<t[^>]*>([\\s\\S]*?)<\\/t>[\\s\\S]*?<\\/c>/g;\n  let m;\n  while ((m = re.exec(xml)) !== null) {\n    const txt = decodeXmlEntities(m[2]).trim();\n    if (!txt) continue;\n    if (txt.toLowerCase() === 'keyword') continue;\n    out.push(txt);\n  }\n  return out;\n}\nfunction parseSheetVariantsAB(xml) {\n  const rows = new Map();\n  const cellRe = /<c[^>]*\\sr=\"([AB])(\\d+)\"[^>]*t=\"inlineStr\"[^>]*>[\\s\\S]*?<t[^>]*>([\\s\\S]*?)<\\/t>[\\s\\S]*?<\\/c>/g;\n  let m;\n  while ((m = cellRe.exec(xml)) !== null) {\n    const col = m[1];\n    const row = Number(m[2] || 0);\n    const val = decodeXmlEntities(m[3]).trim();\n    if (!row || !val) continue;\n    if (!rows.has(row)) rows.set(row, {});\n    rows.get(row)[col] = val;\n  }\n  const out = [];\n  for (const obj of rows.values()) {\n    const k = s(obj.A).trim();\n    const v = s(obj.B).trim();\n    if (!k || !v) continue;\n    if (k.toLowerCase() === 'keyword' && v.toLowerCase() === 'variant') continue;\n    out.push({ keyword: k, variant: v });\n  }\n  return out;\n}\n\nfunction readErrorKeywordCatalog() {\n  const xlsxPath = chooseKeywordFilePath();\n  if (!xlsxPath) {\n    return { ok: false, path: '', keywords: [], variantsMap: {}, error: 'Keyword XLSX not found (set STORAGE_ERROR_KEYWORDS_XLSX)' };\n  }\n  try {\n    const xml1 = xlsxReadEntry(xlsxPath, 'xl/worksheets/sheet1.xml');\n    const xml2 = xlsxReadEntry(xlsxPath, 'xl/worksheets/sheet2.xml');\n\n    let keywords = parseSheetColumnA(xml1);\n    const pairs = parseSheetVariantsAB(xml2);\n\n    if (!ALLOW_HEX) keywords = keywords.filter((k) => !isHexOnlyToken(k));\n\n    const variantsMap = {};\n    for (const p of pairs) {\n      const k = s(p.keyword).trim();\n      const v = s(p.variant).trim();\n      if (!k || !v) continue;\n      if (!ALLOW_HEX && (isHexOnlyToken(k) || isHexOnlyToken(v))) continue;\n\n      const kk = k.toLowerCase();\n      if (!variantsMap[kk]) variantsMap[kk] = [];\n      variantsMap[kk].push(v);\n    }\n    for (const k of Object.keys(variantsMap)) {\n      variantsMap[k] = Array.from(new Set(variantsMap[k].map((x) => s(x).trim()).filter(Boolean)));\n    }\n\n    return { ok: true, path: xlsxPath, keywords, variantsMap, error: '' };\n  } catch (e) {\n    return { ok: false, path: xlsxPath, keywords: [], variantsMap: {}, error: `Failed to parse XLSX: ${e?.message || e}` };\n  }\n}\n\nfunction formatCatalogContext(catalog) {\n  if (!catalog.ok) return `[n8n] ERROR KEYWORDS CATALOG: NOT AVAILABLE\\n${s(catalog.error)}`.trim();\n  return `ERROR KEYWORDS CATALOG (LOCAL XLSX)\nSource: ${catalog.path}\nKeywords: ${catalog.keywords.length}\nVariant groups: ${Object.keys(catalog.variantsMap).length}\nAllowHex: ${ALLOW_HEX ? '1' : '0'}`.trim();\n}\n\n// ---------- helpers ----------\nfunction severityForBase(baseKw) {\n  const k = s(baseKw).toLowerCase();\n  if (k.includes('quarantine') || k.includes('fault') || k.includes('uncorrectable') || k.includes('offline') || k.includes('missing')) return 'Critical';\n  if (k.includes('error') || k.includes('timeout') || k.includes('degrad') || k.includes('fail') || k.includes('crc')) return 'Major';\n  if (k.includes('warn') || k.includes('alarm') || k.includes('battery') || k.includes('temp') || k.includes('voltage') || k.includes('power')) return 'Warning';\n  return 'Minor';\n}\nfunction weightForSeverity(sev) {\n  if (sev === 'Critical') return 100;\n  if (sev === 'Major') return 60;\n  if (sev === 'Warning') return 30;\n  return 10;\n}\nfunction componentForLine(line) {\n  const t = s(line).toLowerCase();\n  if (t.includes('disk group') || t.includes('vdisk') || t.includes('dg')) return 'DiskGroup';\n  if (t.includes('drive') || t.includes('disk') || t.includes('slot') || t.includes('enclosure')) return 'Disk';\n  if (t.includes('controller') || t.includes('iom')) return 'Controller';\n  if (t.includes('psu') || t.includes('power supply')) return 'PSU';\n  if (t.includes('fan')) return 'Fan';\n  return 'Other';\n}\nfunction extractTimestamp(line) {\n  const x = s(line);\n  let m = x.match(/\\b(20\\d{2}-\\d{2}-\\d{2}[ T]\\d{2}:\\d{2}:\\d{2})\\b/);\n  if (m) return m[1];\n  return '';\n}\nfunction normalizeSig(line) {\n  return s(line)\n    .toLowerCase()\n    .replace(/[0-9a-f]{8,}/g, '#HEX')\n    .replace(/\\b\\d+\\b/g, '#')\n    .replace(/\\s+/g, ' ')\n    .trim()\n    .slice(0, 220);\n}\n\nfunction buildRegexBatches(terms, wordBoundary) {\n  const clean = terms.map((t) => s(t).trim()).filter(Boolean);\n  const batches = [];\n  const BATCH = 120;\n  for (let i = 0; i < clean.length; i += BATCH) {\n    const part = clean.slice(i, i + BATCH).map(escapeRegex).join('|');\n    if (!part) continue;\n    const src = wordBoundary ? `\\\\b(?:${part})\\\\b` : `(?:${part})`;\n    batches.push(new RegExp(src, 'ig'));\n  }\n  return batches;\n}\nfunction findMatches(line, regexBatches, limit = 4) {\n  const out = [];\n  for (const re of regexBatches) {\n    re.lastIndex = 0;\n    let m;\n    while ((m = re.exec(line)) !== null) {\n      const hit = s(m[0]).trim();\n      if (hit) out.push(hit);\n      if (out.length >= limit) return out;\n      if (m.index === re.lastIndex) re.lastIndex++;\n    }\n  }\n  return out;\n}\n\nfunction extractNominal(line) {\n  const t = s(line);\n  const ev = t.match(/\\b([AB]\\d{3,6})\\b/);\n  const encl = t.match(/\\benclosure:\\s*([0-9]+)\\b/i);\n  const slot = t.match(/\\bslot:\\s*([0-9]+)\\b/i);\n  const sn = t.match(/\\bSN[:\\s]+([A-Z0-9]{4,})\\b/i);\n  const dg = t.match(/\\b(dg[A-Za-z0-9_]+)\\b/);\n\n  const parts = [];\n  if (ev) parts.push(`event=${ev[1]}`);\n  if (dg) parts.push(`dg=${dg[1]}`);\n  if (encl) parts.push(`encl=${encl[1]}`);\n  if (slot) parts.push(`slot=${slot[1]}`);\n  if (sn) parts.push(`sn=${sn[1]}`);\n\n  if (!parts.length) return `frag=${t.toLowerCase().replace(/\\s+/g, ' ').trim().slice(0, 60)}`;\n  return parts.join(';');\n}\n\nfunction scanTextFileSync(fp, rel, state) {\n  const st = fs.statSync(fp);\n  if (st.size <= 0) return;\n  if (st.size > MAX_FILE_BYTES) return;\n  if (isBinaryFileQuick(fp)) return;\n\n  const fd = fs.openSync(fp, 'r');\n  const CHUNK = 2 * 1024 * 1024;\n  const buf = Buffer.alloc(CHUNK);\n\n  let carry = '';\n  let lineNo = 0;\n\n  const prev = [];\n  const pending = [];\n\n  function pushPrev(line) { prev.push(line); while (prev.length > CONTEXT) prev.shift(); }\n  function advancePending(line) {\n    for (let i = pending.length - 1; i >= 0; i--) {\n      const p = pending[i];\n      if (p.after.length < CONTEXT) p.after.push(line);\n      if (p.after.length >= CONTEXT) { state.matches.push(p); pending.splice(i, 1); }\n    }\n  }\n\n  try {\n    let pos = 0;\n    while (true) {\n      const n = fs.readSync(fd, buf, 0, buf.length, pos);\n      if (!n) break;\n      pos += n;\n      carry += buf.slice(0, n).toString('utf8');\n\n      let idx;\n      while ((idx = carry.indexOf('\\n')) !== -1) {\n        let line = carry.slice(0, idx);\n        carry = carry.slice(idx + 1);\n        if (line.endsWith('\\r')) line = line.slice(0, -1);\n        lineNo++;\n\n        if (line.length >= 3) {\n          const hits = findMatches(line, state.reLong, 3).concat(findMatches(line, state.reShort, 3));\n          const uniqHits = Array.from(new Set(hits.map((x) => x.toLowerCase())));\n\n          if (uniqHits.length) {\n            for (const termLower of uniqHits) state.termCounts[termLower] = (state.termCounts[termLower] || 0) + 1;\n\n            let best = null;\n            for (const tl of uniqHits) {\n              const baseKw = state.termToBase[tl] || tl;\n              const sev = severityForBase(baseKw);\n              const w = weightForSeverity(sev);\n              const cnt = state.termCounts[tl] || 0;\n              if (cnt > PER_TERM_LIMIT) continue;\n              const cand = { tl, baseKw, sev, w };\n              if (!best || cand.w > best.w) best = cand;\n            }\n\n            if (best) {\n              const comp = componentForLine(line);\n              const sig = normalizeSig(line);\n              const sigKey = `${best.baseKw}|${best.sev}|${comp}|${sig}`;\n\n              state.sigCounts[sigKey] = (state.sigCounts[sigKey] || 0) + 1;\n\n              const nom = extractNominal(line);\n              if (!state.sigNominals[sigKey]) state.sigNominals[sigKey] = new Set();\n              state.sigNominals[sigKey].add(nom);\n\n              const low = line.toLowerCase();\n              if (low.includes('disk group') && low.includes('quarantin')) state.dgHits.push({ file: rel, line: lineNo, evidence: line });\n              if (low.includes('dga01') && low.includes('quarantin')) state.dgA01Hits.push({ file: rel, line: lineNo, evidence: line });\n\n              if (state.totalMatches < MAX_MATCHES) {\n                const dedupKey = `${best.tl}|${sig}`;\n                if (!state.seen.has(dedupKey)) {\n                  state.seen.add(dedupKey);\n                  state.totalMatches++;\n\n                  const rec = {\n                    term: best.tl,\n                    baseKeyword: best.baseKw,\n                    severity: best.sev,\n                    weight: best.w,\n                    timestamp: extractTimestamp(line),\n                    component: comp,\n                    file: rel,\n                    line: lineNo,\n                    lineText: line,\n                    before: prev.slice(0),\n                    after: [],\n                    nominal: nom,\n                    sigKey,\n                  };\n\n                  if (CONTEXT > 0) pending.push(rec);\n                  else state.matches.push(rec);\n                }\n              }\n            }\n          }\n        }\n\n        pushPrev(line);\n        advancePending(line);\n        if (state.totalMatches >= MAX_MATCHES && pending.length === 0) break;\n      }\n\n      if (state.totalMatches >= MAX_MATCHES && pending.length === 0) break;\n    }\n\n    for (const p of pending) state.matches.push(p);\n  } finally {\n    try { fs.closeSync(fd); } catch {}\n  }\n}\n\nfunction buildErrorsIndexText(state) {\n  const parsed = Object.keys(state.sigCounts).map((k) => {\n    const parts = k.split('|');\n    const keyword = parts[0] || 'n/a';\n    const sev = parts[1] || 'Minor';\n    const comp = parts[2] || 'Other';\n    const sig = parts.slice(3).join('|') || 'n/a';\n    return { k, keyword, sev, comp, sig, count: state.sigCounts[k] || 0, w: weightForSeverity(sev) };\n  }).sort((a, b) => (b.w - a.w) || (b.count - a.count));\n\n  const out = [];\n  let used = 0;\n  const push = (ln) => { out.push(ln); used += ln.length + 1; };\n\n  push('ERROR SIGNATURE INDEX (nominals only; no deep arrays)');\n  push(`[n8n] signatures=${parsed.length}`);\n  push('');\n\n  let emitted = 0;\n  for (const it of parsed) {\n    emitted++;\n    push(`SIG#${emitted}: severity=${it.sev}; component=${it.comp}; keyword=${it.keyword}; seen=${it.count}`);\n    push(`  sig_norm=${it.sig}`);\n\n    const nomSet = state.sigNominals[it.k] ? Array.from(state.sigNominals[it.k]) : [];\n    if (nomSet.length) {\n      const shown = nomSet.slice(0, INDEX_MAX_NOMINALS_PER_SIG);\n      const omitted = Math.max(0, nomSet.length - shown.length);\n      push(`  NOMINALS(${nomSet.length})${omitted ? ` (omitted=${omitted})` : ''}:`);\n      for (const n of shown) {\n        push(`    - ${n}`);\n        if (used > INDEX_MAX_CHARS) break;\n      }\n    } else {\n      push('  NOMINALS: N/A');\n    }\n\n    push('');\n    if (used > INDEX_MAX_CHARS || emitted >= INDEX_MAX_SIGS) {\n      push('[n8n] INDEX TRUNCATED (budget reached)');\n      break;\n    }\n  }\n\n  return out.join('\\n').trim();\n}\n\nfunction buildCompactDigest(state, catalogCtx) {\n  const out = [];\n  let used = 0;\n  const push = (ln) => { out.push(ln); used += ln.length + 1; };\n\n  push('[n8n] ERRORS DIGEST (compact)');\n  push(catalogCtx ? `[n8n] Catalog: ${catalogCtx.split('\\n')[1] || ''}` : '[n8n] Catalog: N/A');\n  push('');\n\n  const dg = state.dgA01Hits.length ? state.dgA01Hits : state.dgHits;\n  if (dg.length) {\n    push('[n8n] DG QUARANTINE EVIDENCE (top):');\n    for (const h of dg.slice(0, 10)) {\n      push(`[source ${h.file}:${h.line}] ${s(h.evidence).slice(0, 800)}`);\n      if (used > DIGEST_MAX_CHARS) break;\n    }\n    push('');\n  }\n\n  // evidence lines (unique) — prefer higher severity\n  const sorted = state.matches.slice(0).sort((a, b) => (b.weight - a.weight));\n  push('[n8n] TOP EVIDENCE LINES:');\n  let n = 0;\n  for (const m of sorted) {\n    n++;\n    push(`[meta] severity=${m.severity}; component=${m.component}; keyword=${m.baseKeyword}; nominal=${m.nominal || 'N/A'}`);\n    push(`[source ${m.file}:${m.line}] ${s(m.lineText).slice(0, 900)}`);\n    push('');\n    if (n >= 80 || used > DIGEST_MAX_CHARS) break;\n  }\n\n  let txt = out.join('\\n').trim();\n  if (txt.length > DIGEST_MAX_CHARS) txt = txt.slice(0, DIGEST_MAX_CHARS) + '\\n[n8n] TRUNCATED';\n  return txt;\n}\n\n// ----------------- MAIN -----------------\nconst tmp = fs.mkdtempSync(path.join(os.tmpdir(), 'lp-errors-'));\n\ntry {\n  const catalog = readErrorKeywordCatalog();\n  const catalogCtx = formatCatalogContext(catalog);\n\n  // build term map\n  const termToBase = {};\n  const allTerms = [];\n\n  for (const kw of (catalog.keywords || [])) {\n    const k = s(kw).trim().toLowerCase();\n    if (!k) continue;\n    termToBase[k] = k;\n    allTerms.push(k);\n\n    const vars = (catalog.variantsMap || {})[k] || [];\n    for (const v of vars) {\n      const vv = s(v).trim().toLowerCase();\n      if (!vv) continue;\n      if (!ALLOW_HEX && isHexOnlyToken(vv)) continue;\n      termToBase[vv] = k;\n      allTerms.push(vv);\n    }\n  }\n\n  const uniqTerms = Array.from(new Set(allTerms)).filter((t) => t.length >= 3).slice(0, 2000);\n  const shortTerms = uniqTerms.filter((t) => t.length <= 4 && /^[a-z0-9]+$/.test(t));\n  const longTerms = uniqTerms.filter((t) => t.length > 4);\n\n  const state = {\n    termToBase,\n    termCounts: {},\n    seen: new Set(),\n    matches: [],\n    totalMatches: 0,\n    sigCounts: {},\n    sigNominals: {},\n    dgHits: [],\n    dgA01Hits: [],\n    reShort: buildRegexBatches(shortTerms, true),\n    reLong: buildRegexBatches(longTerms, false),\n  };\n\n  // Scan attachments\n  const files = Array.isArray(base.files) ? base.files : [];\n  const nonImg = files.filter((f) => {\n    const kind = s(f?.kind).toLowerCase();\n    if (kind === 'image') return false;\n    const name = s(f?.name).toLowerCase();\n    if (name.match(/\\.(png|jpg|jpeg|webp|gif|bmp)$/)) return false;\n    return true;\n  });\n\n  for (const f of nonImg) {\n    const fileId = s(f.file_id || f.id).trim();\n    const fileName = s(f.name || 'file').trim() || 'file';\n    if (!fileId) continue;\n\n    const buf = await yandexGetFileBuffer(fileId);\n    const safeName = fileName.replace(/[^\\w.\\-]+/g, '_').slice(0, 120) || `file_${fileId}`;\n    const srcPath = path.join(tmp, safeName);\n    fs.writeFileSync(srcPath, buf);\n\n    const outDir = path.join(tmp, `${safeName}__unpacked`);\n    ensureDir(outDir);\n\n    const lower = safeName.toLowerCase();\n    try {\n      if (lower.endsWith('.zip')) execFileSync('unzip', ['-qq', '-o', srcPath, '-d', outDir], { stdio: 'ignore' });\n      else if (lower.endsWith('.tar.gz') || lower.endsWith('.tgz')) execFileSync('tar', ['-xzf', srcPath, '-C', outDir], { stdio: 'ignore' });\n      else if (lower.endsWith('.tar')) execFileSync('tar', ['-xf', srcPath, '-C', outDir], { stdio: 'ignore' });\n      else if (lower.endsWith('.gz')) gunzipToFile(srcPath, path.join(outDir, safeName.replace(/\\.gz$/i, '')));\n      else fs.copyFileSync(srcPath, path.join(outDir, safeName));\n    } catch {\n      try { fs.copyFileSync(srcPath, path.join(outDir, safeName)); } catch {}\n    }\n\n    for (const fp of walkFiles(outDir)) {\n      let st;\n      try { st = fs.statSync(fp); } catch { continue; }\n      if (!st.isFile() || st.size <= 0 || st.size > MAX_FILE_BYTES) continue;\n\n      const rel = path.relative(outDir, fp).replace(/\\\\/g, '/');\n      const ext = path.extname(rel).toLowerCase();\n      if (ext.match(/\\.(png|jpg|jpeg|gif|bmp|webp|pdf|bin|exe|dll)$/)) continue;\n\n      scanTextFileSync(fp, `${safeName}/${rel}`, state);\n    }\n  }\n\n  // confirmed events (short)\n  const confirmed_events = state.matches.slice(0, CONFIRMED_MAX).map((m) => ({\n    phrase: m.baseKeyword,\n    term: m.term,\n    severity: m.severity,\n    component: m.component,\n    source: m.file,\n    line: m.line,\n    timestamp: m.timestamp || 'N/A',\n    nominal: m.nominal || 'N/A',\n    evidence: s(m.lineText).replace(/\\s+/g, ' ').trim().slice(0, CONFIRMED_EVIDENCE_MAX),\n  }));\n\n  const dgA01_hits = (state.dgA01Hits.length ? state.dgA01Hits : state.dgHits).slice(0, 12).map((h) => ({\n    line: h.line,\n    source: h.file,\n    evidence: s(h.evidence).replace(/\\s+/g, ' ').trim().slice(0, 500),\n  }));\n\n  const errors_index_text = buildErrorsIndexText(state);\n  const digest_errors_text = buildCompactDigest(state, catalogCtx);\n\n  return [{\n    json: {\n      ...base,\n\n      event_catalog_context_text: catalogCtx,\n      confirmed_events,\n      dgA01_hits,\n      errors_index_text,\n      digest_errors_text,\n\n      _errors_keywords_ok: !!catalog.ok,\n      _errors_keywords_path: catalog.path || '',\n      _errors_keywords_error: catalog.ok ? '' : s(catalog.error || ''),\n      _errors_terms_count: uniqTerms.length,\n      _errors_matches_total: state.matches.length,\n      _errors_index_signatures: Object.keys(state.sigCounts).length,\n      _errors_allow_hex: ALLOW_HEX ? 1 : 0,\n    }\n  }];\n\n} catch (e) {\n  return [{\n    json: {\n      ...base, // FIXED\n      _errors_extract_error: true,\n      _errors_extract_error_message: s(e?.message || e),\n      errors_index_text: `[n8n] errors_index_text unavailable: ${e?.message || e}`,\n      digest_errors_text: `[n8n] Storage Error Candidates failed: ${e?.message || e}`,\n    }\n  }];\n} finally {\n  try { fs.rmSync(tmp, { recursive: true, force: true }); } catch {}\n}\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        3968,
+        -2592
+      ],
+      "id": "f99d3dd7-1a3d-41f3-8897-035470cd3009",
+      "name": "Storage Error Candidates"
+    },
+    {
+      "parameters": {
+        "jsCode": "// Assemble Storage Report — FULL REPLACE v5-table-format\n// Output formatting rules:\n// 1) Drop columns where ALL rows are empty or N/A.\n// 2) Render tables as aligned text (spaces), not semicolon-separated.\n// 3) Between tables: \"======================================================\"\n\nfunction s(x){ return x == null ? \"\" : String(x); }\n\nconst SEP_LINE = \"======================================================\";\nconst COL_GAP = \"  \"; // at least 2 spaces\n\nfunction extractAssistantText(j) {\n  if (!j || typeof j !== \"object\") return \"\";\n  if (typeof j.message?.content === \"string\") return j.message.content;\n  if (typeof j.ollama?.message?.content === \"string\") return j.ollama.message.content;\n  if (typeof j.response === \"string\") return j.response;\n  if (typeof j.text === \"string\") return j.text;\n  return \"\";\n}\n\nfunction stripThink(raw) { return s(raw).replace(/<think>[\\s\\S]*?<\\/think>/gi, \"\").trim(); }\n\nfunction stripCodeFences(raw) {\n  const t = s(raw).trim();\n  const m = t.match(/^```[a-z0-9_-]*\\s*([\\s\\S]*?)\\s*```$/i);\n  return m ? m[1].trim() : t;\n}\n\nfunction normTask(t){\n  const x = s(t).trim().toLowerCase();\n  if (x.includes(\"structure\")) return \"structure\";\n  if (x.includes(\"disk\")) return \"disks\";\n  if (x.includes(\"periph\")) return \"periphery\";\n  if (x.includes(\"error\")) return \"errors\";\n  return \"unknown\";\n}\n\nfunction collectAllItems(){\n  const out = [];\n  try { for (const it of $input.all()) out.push(it.json || {}); }\n  catch { out.push($input.item.json || {}); }\n  return out;\n}\n\nfunction nowMSK() {\n  try {\n    const d = new Date();\n    const dtf = new Intl.DateTimeFormat(\"en-GB\", {\n      timeZone: \"Europe/Moscow\",\n      year: \"numeric\", month: \"2-digit\", day: \"2-digit\",\n      hour: \"2-digit\", minute: \"2-digit\", second: \"2-digit\",\n      hour12: false,\n    });\n    const parts = dtf.format(d).replace(\",\", \"\");\n    const m = parts.match(/^(\\d{2})\\/(\\d{2})\\/(\\d{4})\\s+(\\d{2}):(\\d{2}):(\\d{2})$/);\n    if (!m) return parts + \" (MSK)\";\n    return `${m[1]}-${m[2]}-${m[3]} ${m[4]}:${m[5]}:${m[6]} (MSK)`;\n  } catch {\n    const d = new Date(Date.now() + 3*3600*1000);\n    return d.toISOString().replace(\"T\",\" \").replace(\"Z\",\"\") + \" (MSK~)\";\n  }\n}\n\nfunction extractErrorsOnly(raw) {\n  let t = stripCodeFences(stripThink(raw)).trim();\n  if (!t) return \"\";\n\n  const idxTable = t.toUpperCase().indexOf(\"TABLE: ERRORS\");\n  if (idxTable >= 0) return t.slice(idxTable).trim();\n\n  const reAll = /(^|\\n)\\s*4\\)\\s*Errors:\\s*/gi;\n  let last = -1;\n  let m;\n  while ((m = reAll.exec(t)) !== null) last = m.index;\n  if (last >= 0) {\n    const cut = t.slice(last);\n    return cut.replace(/^\\s*4\\)\\s*Errors:\\s*/i, \"\").trim();\n  }\n\n  return t.trim();\n}\n\nfunction isNA(val) {\n  const v = s(val).trim();\n  if (!v) return true;\n  const low = v.toLowerCase();\n  return low === \"n/a\" || low === \"na\" || low === \"-\" || low === \"none\";\n}\n\nfunction parseRow(line, delim, nCols) {\n  const parts = s(line).split(delim).map(x => x.trim());\n  if (nCols <= 1) return parts;\n  if (parts.length === nCols) return parts;\n  if (parts.length < nCols) {\n    while (parts.length < nCols) parts.push(\"\");\n    return parts;\n  }\n  // too many splits: merge tail into last cell (safe for Message that may contain ';')\n  const head = parts.slice(0, nCols - 1);\n  const tail = parts.slice(nCols - 1).join(delim).trim();\n  return head.concat([tail]);\n}\n\nfunction detectDelimiter(headerLine) {\n  const l = s(headerLine);\n  if (l.includes(\";\")) return \";\";\n  if (l.includes(\"\\t\")) return \"\\t\";\n  return \"\";\n}\n\nfunction formatTable(name, headerLine, rowLines) {\n  const delim = detectDelimiter(headerLine);\n  if (!delim) {\n    // Not a delimited table; return as-is\n    const body = [headerLine].concat(rowLines || []).join(\"\\n\").trim();\n    return [`TABLE: ${name}`, body || \"N/A\"].join(\"\\n\").trim();\n  }\n\n  const headers = parseRow(headerLine, delim, 999);\n  const nCols = headers.length;\n\n  // rows\n  let rows = [];\n  for (const rl of rowLines) {\n    const r = s(rl).trim();\n    if (!r) continue;\n    if (r.toUpperCase() === \"N/A\") continue;\n    rows.push(parseRow(r, delim, nCols));\n  }\n\n  if (!rows.length) {\n    return [`TABLE: ${name}`, \"N/A\"].join(\"\\n\");\n  }\n\n  // drop columns where ALL rows are N/A/empty\n  const keepIdx = [];\n  for (let c = 0; c < nCols; c++) {\n    let allEmpty = true;\n    for (const r of rows) {\n      if (!isNA(r[c])) { allEmpty = false; break; }\n    }\n    if (!allEmpty) keepIdx.push(c);\n  }\n\n  // If everything was dropped, table is effectively empty\n  if (!keepIdx.length) {\n    return [`TABLE: ${name}`, \"N/A\"].join(\"\\n\");\n  }\n\n  const keptHeaders = keepIdx.map(i => headers[i] || \"\");\n  const keptRows = rows.map(r => keepIdx.map(i => r[i] || \"\"));\n\n  // widths (align all but last column; last column prints as-is)\n  const widths = keptHeaders.map(h => Math.max(3, s(h).length));\n  for (const r of keptRows) {\n    for (let i = 0; i < r.length; i++) {\n      if (i === r.length - 1) continue; // last column no width pressure\n      widths[i] = Math.max(widths[i], s(r[i]).length);\n    }\n  }\n\n  function fmtLine(cells) {\n    const out = [];\n    for (let i = 0; i < cells.length; i++) {\n      const v = s(cells[i]).trim();\n      if (i === cells.length - 1) out.push(v);\n      else out.push(v.padEnd(widths[i], \" \"));\n    }\n    return out.join(COL_GAP).trimEnd();\n  }\n\n  const lines = [];\n  lines.push(`TABLE: ${name}`);\n  lines.push(fmtLine(keptHeaders));\n  for (const r of keptRows) lines.push(fmtLine(r));\n  return lines.join(\"\\n\").trim();\n}\n\nfunction formatTablesInText(text) {\n  const t = s(text).replace(/\\r\\n/g, \"\\n\").trim();\n  if (!t) return \"\";\n\n  const lines = t.split(\"\\n\");\n  const out = [];\n  let i = 0;\n  let tablesEmitted = 0;\n\n  while (i < lines.length) {\n    const line = lines[i];\n\n    const m = line.match(/^\\s*TABLE:\\s*(.+?)\\s*$/i);\n    if (!m) {\n      out.push(line);\n      i++;\n      continue;\n    }\n\n    const name = s(m[1]).trim();\n    // find header line\n    i++;\n    while (i < lines.length && !lines[i].trim()) i++;\n\n    if (i >= lines.length) {\n      // table name without content\n      if (tablesEmitted > 0) out.push(SEP_LINE);\n      out.push(`TABLE: ${name}`);\n      out.push(\"N/A\");\n      tablesEmitted++;\n      break;\n    }\n\n    // if directly N/A\n    if (lines[i].trim().toUpperCase() === \"N/A\") {\n      if (tablesEmitted > 0) out.push(SEP_LINE);\n      out.push(`TABLE: ${name}`);\n      out.push(\"N/A\");\n      tablesEmitted++;\n      i++;\n      continue;\n    }\n\n    const headerLine = lines[i];\n    i++;\n\n    const rowLines = [];\n    while (i < lines.length) {\n      const cur = lines[i];\n      if (/^\\s*TABLE:\\s*/i.test(cur)) break;\n      // allow blank lines inside table: we keep them as row separators (ignored by parser)\n      rowLines.push(cur);\n      i++;\n    }\n\n    if (tablesEmitted > 0) out.push(SEP_LINE);\n    out.push(formatTable(name, headerLine, rowLines));\n    tablesEmitted++;\n  }\n\n  return out.join(\"\\n\").replace(/\\n{3,}/g, \"\\n\\n\").trim();\n}\n\n// ---------------- MAIN ----------------\nconst items = collectAllItems();\nconst any = items.find(it => it.hw_vendor || it.vendor || it.klass || it.modelDetected) || items[0] || {};\n\nconst byTask = { structure: [], disks: [], periphery: [], errors: [] };\nfor (const it of items) {\n  const t = normTask(it.task);\n  if (byTask[t]) byTask[t].push(it);\n}\n\nfunction bestRaw(task){\n  const arr = byTask[task] || [];\n  if (!arr.length) return \"\";\n  arr.sort((a,b) => extractAssistantText(b).length - extractAssistantText(a).length);\n  return extractAssistantText(arr[0]);\n}\n\nconst rawStruct0 = stripCodeFences(stripThink(bestRaw(\"structure\")));\nconst rawDisks0  = stripCodeFences(stripThink(bestRaw(\"disks\")));\nconst rawPer0    = stripCodeFences(stripThink(bestRaw(\"periphery\")));\nconst rawErrRaw  = bestRaw(\"errors\");\nconst rawErr0    = extractErrorsOnly(rawErrRaw);\n\n// APPLY TABLE FORMATTER\nconst rawStruct = formatTablesInText(rawStruct0) || (rawStruct0.trim() ? rawStruct0.trim() : \"N/A\");\nconst rawDisks  = formatTablesInText(rawDisks0)  || rawDisks0.trim();\nconst rawPer    = formatTablesInText(rawPer0)    || rawPer0.trim();\nconst rawErr    = rawErr0.trim() ? formatTablesInText(rawErr0) : \"\";\n\nconst reportLLM = s(any.ReportLLM || $env.LOGPARSER_REPORT_LLM || \"qwen2.5:32b-instruct-q8_0\").trim() || \"qwen2.5:32b-instruct-q8_0\";\nconst reportTs  = s(any.ReportTimestampMSK).trim() || nowMSK();\n\nconst vendor = s(any.hw_vendor || any.vendor || \"\").trim() || \"N/A\";\nconst klass  = s(any.hw_class || any.klass || any.class || \"\").trim() || \"N/A\";\nconst model  = s(any.hw_model || any.modelDetected || any.model || \"\").trim() || \"N/A\";\n\nconst sec1 =\n`1) Parser metadata:\n   - LLM: ${reportLLM}\n   - Timestamp (MSK): ${reportTs}`.trim();\n\nconst sec2_parts = [];\nsec2_parts.push(`Vendor: ${vendor}`);\nsec2_parts.push(`Class: ${klass}`);\nsec2_parts.push(`Model: ${model}`);\nsec2_parts.push(rawStruct && rawStruct.trim() ? rawStruct.trim() : \"N/A\");\n\nconst sec2 =\n`2) Hardware identification:\n${sec2_parts.join(\"\\n\")}`.trim();\n\nconst sec3_parts = [];\nif (rawDisks && rawDisks.trim()) sec3_parts.push(rawDisks.trim());\nif (rawPer && rawPer.trim()) sec3_parts.push(rawPer.trim());\nif (!sec3_parts.length) sec3_parts.push(\"N/A\");\n\nconst sec3 =\n`3) Component status:\n${sec3_parts.join(\"\\n\\n\")}`.trim();\n\nconst sec4 =\n`4) Errors:\n${rawErr && rawErr.trim() ? rawErr.trim() : \"N/A\"}`.trim();\n\nconst finalReport = [sec1, \"\", sec2, \"\", sec3, \"\", sec4].join(\"\\n\").trim();\n\nreturn [{\n  json: Object.assign({}, any, {\n    message: { role: \"assistant\", content: finalReport },\n  })\n}];\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        5952,
+        -2880
+      ],
+      "id": "59394366-3b39-43c4-b624-b9153be9b1f4",
+      "name": "Assemble Storage Report"
+    },
+    {
+      "parameters": {
+        "jsCode": "// Compose Storage Structure input — FULL REPLACE v2-B (Qwen, 1 task = 1 answer, tables only)\n\nconst base = $input.item.json || {};\nconst s = (x) => (x == null ? '' : String(x));\n\nconst model =\n  s($env.STORAGE_LLM_MODEL_STRUCTURE).trim() ||\n  s($env.STORAGE_LLM_MODEL).trim() ||\n  s($env.LOGPARSER_LLM_MODEL).trim() ||\n  'qwen2.5:32b-instruct-q8_0';\n\nconst MAX = Number($env.STRUCTURE_PROMPT_MAX_CHARS || 600000);\n\nfunction clip(t, n) {\n  const x = s(t);\n  return x.length <= n ? x : (x.slice(0, n) + `\\n[n8n] TRUNCATED to ${n} chars`);\n}\n\nfunction getDigest(b) {\n  return (\n    s(b.digest_structure_text) ||\n    s(b.structure_digest) ||\n    s(b.structureText) ||\n    ''\n  );\n}\n\nconst digest = clip(getDigest(base), MAX);\n\n// context (do NOT ask model to output these)\nconst vendor = s(base.hw_vendor || base.vendor || '').trim() || 'N/A';\nconst klass  = s(base.hw_class || base.klass || base.class || '').trim() || 'N/A';\nconst modelHw = s(base.hw_model || base.modelDetected || base.model || '').trim() || 'N/A';\n\nconst llm_input =\n`TASK: STORAGE / SYSTEM CONFIG (SECTION 2 TABLES ONLY)\n\nYou are given evidence extracted from the ORIGINAL log archive.\nYour job: produce ONLY the two tables below. No other text. No explanations.\n\nOUTPUT RULES (STRICT):\n- Output must contain ONLY:\n  1) Enclosures table\n  2) Controllers table\n- Use semicolon-separated tables (CSV-like) with ONE header row per table.\n- Title line before each table exactly:\n  TABLE: Enclosures\n  TABLE: Controllers\n- If a table has 0 rows: output \"N/A\" on the next line and DO NOT print the header.\n- If a column is N/A for ALL rows, omit that column (header + cells).\n- Use exact values from evidence. Do NOT invent. If a cell is missing -> N/A.\n- Do NOT include Vendor/Class/Model lines in output (they are handled elsewhere).\n\nSUGGESTED COLUMNS:\n- Enclosures: EnclId;EnclWWN;Vendor;Model;TopLevelAssemblyPartNumber;EMP_A;EMP_B;MidplaneType;Health;Reason;Action\n- Controllers: Controller;Status;SerialNumber;RedundancyMode;RedundancyStatus\n\nCONTEXT (do not output):\nVendor=${vendor}\nClass=${klass}\nModel=${modelHw}\n\nEVIDENCE:\n<<<BEGIN EVIDENCE\n${digest || '[n8n] No structure evidence found.'}\nEND EVIDENCE>>>`;\n\nreturn [{\n  json: {\n    ...base,\n    task: 'storage_structure',\n    taskOrder: 2,\n    model,\n    llm_input,\n    messages: [{ role: 'user', content: llm_input }],\n  }\n}];\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        4192,
+        -3168
+      ],
+      "id": "2e48ff97-44c4-4e03-b87c-f4eb7ddbf893",
+      "name": "Compose Storage Structure input"
+    },
+    {
+      "parameters": {
+        "jsCode": "// Compose Storage Disk input — FULL REPLACE v3-B-FIX (FIX: force table-only; Qwen)\n\nconst base = $input.item.json || {};\nconst s = (x) => (x == null ? \"\" : String(x));\n\nconst model =\n  s($env.STORAGE_LLM_MODEL_DISKS).trim() ||\n  s($env.STORAGE_LLM_MODEL).trim() ||\n  \"qwen2.5:32b-instruct-q8_0\";\n\nconst MAX = Number($env.DISKS_PROMPT_MAX_CHARS || 800000);\n\nfunction clip(t, n) {\n  const x = s(t);\n  return x.length <= n ? x : (x.slice(0, n) + `\\n[n8n] TRUNCATED to ${n} chars`);\n}\n\nconst digest = clip(s(base.digest_disks_text).trim(), MAX);\n\nconst vendor = s(base.hw_vendor || base.vendor || \"\").trim() || \"N/A\";\nconst klass  = s(base.hw_class || base.klass || base.class || \"\").trim() || \"N/A\";\nconst modelHw = s(base.hw_model || base.modelDetected || base.model || \"\").trim() || \"N/A\";\n\nconst llm_input =\n`TASK: STORAGE / DISKS INVENTORY (SECTION 3 - DISKS TABLE ONLY)\n\nOUTPUT RULES (STRICT):\n- Output must contain ONLY:\n  TABLE: Disks\n  <semicolon-separated table OR N/A>\n- NO other text. NO explanations.\n- If 0 rows: output \"N/A\" on the next line and DO NOT print the header.\n- If a column is N/A for ALL rows, omit that column (header + rows).\n- Use exact values from evidence. Do NOT invent.\n\nSUGGESTED COLUMNS:\nLocation;Enclosure;Slot;SerialNumber;Vendor;PartNumber;Description;Usage;DiskGroup;Pool;Tier;Size;SecFmt;SpeedKRPM;Health\n(Note: derive Enclosure/Slot from Location when possible, e.g. \"1.56\" => Enclosure=1 Slot=56)\n\nCONTEXT (do not output):\nVendor=${vendor}\nClass=${klass}\nModel=${modelHw}\n\nEVIDENCE:\n<<<BEGIN EVIDENCE\n${digest || \"[n8n] DISKS DIGEST EMPTY\"}\nEND EVIDENCE>>>`;\n\nreturn [{\n  json: {\n    ...base,\n    task: \"storage_disks\",\n    taskOrder: 3,\n    model,\n    llm_input,\n    messages: [{ role: \"user\", content: llm_input }],\n  }\n}];\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        4192,
+        -2976
+      ],
+      "id": "fd78004b-dba2-41a7-a268-52bcdda3eddc",
+      "name": "Compose Storage Disk input"
+    },
+    {
+      "parameters": {
+        "jsCode": "// Compose Storage Periphery input — FULL REPLACE v2-B (Qwen, 1 task = 1 answer, tables only)\n\nconst base = $input.item.json || {};\nconst s = (x) => (x == null ? '' : String(x));\n\nconst model =\n  s($env.STORAGE_LLM_MODEL_PERIPHERY).trim() ||\n  s($env.STORAGE_LLM_MODEL).trim() ||\n  s($env.LOGPARSER_LLM_MODEL).trim() ||\n  'qwen2.5:32b-instruct-q8_0';\n\nconst MAX = Number($env.PERIPHERY_PROMPT_MAX_CHARS || 600000);\n\nfunction clip(t, n) {\n  const x = s(t);\n  return x.length <= n ? x : (x.slice(0, n) + `\\n[n8n] TRUNCATED to ${n} chars`);\n}\n\nfunction getDigest(b) {\n  return (\n    s(b.digest_periphery_text) ||\n    s(b.periphery_digest) ||\n    s(b.peripheryText) ||\n    ''\n  );\n}\n\nconst digest = clip(getDigest(base), MAX);\n\n// context (do NOT ask model to output these)\nconst vendor = s(base.hw_vendor || base.vendor || '').trim() || 'N/A';\nconst klass  = s(base.hw_class || base.klass || base.class || '').trim() || 'N/A';\nconst modelHw = s(base.hw_model || base.modelDetected || base.model || '').trim() || 'N/A';\n\nconst llm_input =\n`TASK: STORAGE / PERIPHERY (SECTION 3 PSU+SFP TABLES ONLY)\n\nYou are given evidence extracted from the ORIGINAL log archive.\nYour job: produce ONLY the two tables below. No other text. No explanations.\n\nOUTPUT RULES (STRICT):\n- Output must contain ONLY:\n  1) PSU table\n  2) SFP table\n- Use semicolon-separated tables (CSV-like) with ONE header row per table.\n- Title line before each table exactly:\n  TABLE: PSU\n  TABLE: SFP\n- If a table has 0 rows: output \"N/A\" on the next line and DO NOT print the header.\n- If a column is N/A for ALL rows, omit that column (header + cells).\n- Use exact values from evidence. Do NOT invent. If a cell is missing -> N/A.\n- Do NOT include any explanations.\n\nSUGGESTED COLUMNS:\n- PSU: EnclId;PSUId;SerialNumber;PartNumber;Name;FirmwareVersion;Health;Reason;Action\n- SFP: Port;Present;Status;Vendor;PartNumber;SerialNumber;Speed;Health;Reason\n\nCONTEXT (do not output):\nVendor=${vendor}\nClass=${klass}\nModel=${modelHw}\n\nEVIDENCE:\n<<<BEGIN EVIDENCE\n${digest || '[n8n] No periphery evidence found.'}\nEND EVIDENCE>>>`;\n\nreturn [{\n  json: {\n    ...base,\n    task: 'storage_periphery',\n    taskOrder: 4,\n    model,\n    llm_input,\n    messages: [{ role: 'user', content: llm_input }],\n  }\n}];\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        4416,
+        -2784
+      ],
+      "id": "1346b081-729d-4333-bd42-18aa2f0f8334",
+      "name": "Compose Storage Periphery input"
+    },
+    {
+      "parameters": {
+        "jsCode": "// RAG Retrieve Storage (offline) — FULL REPLACE v3-local-error-catalog\n// Repurposed: DO NOT call rag-api here. We rely on local XLSX keyword catalog prepared in previous node.\n// This node just normalizes/ensures the fields used downstream exist.\n\nconst base = $input.item.json || {};\nconst s = (x) => (x == null ? '' : String(x));\n\nfunction clip(txt, max = 120000) {\n  const t = s(txt);\n  return t.length > max ? t.slice(0, max) + '\\n[n8n] TRUNCATED' : t;\n}\n\nconst out = {\n  ...base,\n  // Ensure required fields exist for downstream nodes\n  docs_context_text: s(base.docs_context_text || ''),\n  event_catalog_context_text: s(base.event_catalog_context_text || ''),\n  event_catalog_targets: Array.isArray(base.event_catalog_targets) ? base.event_catalog_targets : [],\n};\n\nif (!out.event_catalog_context_text) {\n  // Fallback: if previous node did not provide catalog context, show minimal info\n  const p = s(base._errors_keywords_path || 'N/A');\n  out.event_catalog_context_text = `ERROR KEYWORDS CATALOG (LOCAL)\\nSource: ${p}\\nStatus: ${base._errors_keywords_ok ? 'OK' : 'N/A'}`.trim();\n}\n\nout.docs_context_text = clip(out.docs_context_text, 80000);\nout.event_catalog_context_text = clip(out.event_catalog_context_text, 160000);\n\n// Preserve legacy debug flags (so UI shows why RAG is empty)\nout._rag_mode = 'local-error-keywords-xlsx';\nout._rag_error = ''; // not an error: intentionally offline without rag-api\n\nreturn [{ json: out }];\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        4192,
+        -2592
+      ],
+      "id": "0450a45c-ef0b-414d-a36c-4f41a570e929",
+      "name": "RAG Retrieve Storage (offline)"
+    },
+    {
+      "parameters": {
+        "jsCode": "// RAG Target Matcher — FULL REPLACE v4-local-keyword-matcher\n// Goal: produce confirmed_events + dgA01_hits using local keyword catalog targets and the digest created upstream.\n// Evidence-first: we NEVER invent events that are not present in digest_errors_text.\n\nconst base = $input.item.json || {};\nconst s = (x) => (x == null ? '' : String(x));\n\nconst digest = s(base.digest_errors_text || '');\nconst targets = Array.isArray(base.event_catalog_targets) ? base.event_catalog_targets : [];\n\nfunction escapeRegex(x) { return s(x).replace(/[.*+?^${}()|[\\]\\\\]/g, '\\\\$&'); }\n\nfunction severityHeuristic(termOrKw) {\n  const k = s(termOrKw).toLowerCase();\n  const critical = ['quarantine', 'fault', 'fatal', 'panic', 'assert', 'uncorrectable', 'offline', 'missing', 'failed', 'fail'];\n  const major = ['degraded', 'error', 'timeout', 'rebuild', 'recovery', 'failover', 'crc', 'corrupt'];\n  const warning = ['warn', 'warning', 'alarm', 'battery', 'temp', 'temperature', 'fan', 'power', 'voltage'];\n  if (critical.some((x) => k.includes(x))) return 'Critical';\n  if (major.some((x) => k.includes(x))) return 'Major';\n  if (warning.some((x) => k.includes(x))) return 'Warning';\n  return 'Minor';\n}\nfunction componentHeuristic(line) {\n  const t = s(line).toLowerCase();\n  if (t.includes('disk group') || t.includes('vdisk') || t.includes('dg')) return 'DiskGroup';\n  if (t.includes('drive') || t.includes('disk') || t.includes('slot') || t.includes('enclosure')) return 'Disk';\n  if (t.includes('controller') || t.includes('iom')) return 'Controller';\n  if (t.includes('psu') || t.includes('power supply')) return 'PSU';\n  if (t.includes('fan')) return 'Fan';\n  if (t.includes('port') || t.includes('host')) return 'HostPort';\n  return 'Other';\n}\n\nfunction buildRegex(terms) {\n  const clean = terms\n    .map((t) => s(t).trim())\n    .filter((t) => t && t.length >= 3)\n    .slice(0, 1200)\n    .map(escapeRegex);\n  if (!clean.length) return null;\n  // single regex is OK here because digest is already filtered\n  return new RegExp(`(?:${clean.join('|')})`, 'ig');\n}\n\nconst re = buildRegex(targets);\nconst confirmed = [];\nconst dgHits = [];\n\nif (digest && re) {\n  const lines = digest.split(/\\r?\\n/);\n  for (let i = 0; i < lines.length; i++) {\n    const line = lines[i];\n    if (!line) continue;\n\n    // Prefer the real evidence lines (we annotate with \"[source ...]\" upstream)\n    if (line.startsWith('[source ')) {\n      re.lastIndex = 0;\n      const m = re.exec(line);\n      if (m) {\n        const term = s(m[0]).toLowerCase();\n        const sev = severityHeuristic(term);\n        const comp = componentHeuristic(line);\n        let source = '';\n        let sourceLine = '';\n        const sm = line.match(/^\\[source\\s+([^\\]]+)\\]\\s*/);\n        if (sm) {\n          const parts = s(sm[1]).split(':');\n          source = parts.slice(0, -1).join(':') || s(sm[1]);\n          sourceLine = parts.length > 1 ? parts[parts.length - 1] : '';\n        }\n\n        const rec = {\n          phrase: term,\n          term,\n          severity: sev,\n          component: comp,\n          kb: 'N/A',\n          source: source || 'N/A',\n          line: sourceLine ? Number(sourceLine) || 'N/A' : 'N/A',\n          evidence: line.replace(/^\\[source\\s+[^\\]]+\\]\\s*/, '').trim(),\n          digest_line: i + 1,\n        };\n        confirmed.push(rec);\n\n        const low = line.toLowerCase();\n        if (low.includes('dga01') || (low.includes('disk group') && (low.includes('quarantin') || low.includes('fault')))) {\n          dgHits.push({ source: rec.source, line: rec.line, evidence: rec.evidence });\n        }\n      }\n    }\n    if (confirmed.length >= 300) break;\n  }\n}\n\nconst out = {\n  ...base,\n  confirmed_events: Array.isArray(base.confirmed_events) && base.confirmed_events.length\n    ? base.confirmed_events\n    : confirmed,\n  dgA01_hits: Array.isArray(base.dgA01_hits) && base.dgA01_hits.length\n    ? base.dgA01_hits\n    : dgHits.slice(0, 30),\n  _matcher_mode: 'local-keyword-matcher',\n  _matcher_confirmed: (Array.isArray(base.confirmed_events) && base.confirmed_events.length) ? base.confirmed_events.length : confirmed.length,\n};\n\nreturn [{ json: out }];\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        4416,
+        -2592
+      ],
+      "id": "32ef332d-b794-4bc3-a6ac-d4b0adeb854a",
+      "name": "RAG Target Matcher"
+    },
+    {
+      "parameters": {
+        "jsCode": "// Compose input ERRORS — FULL REPLACE v7.3-nominal-cap\n// Goal:\n// - keep ALL error NOMINALS\n// - cap repetitions per nominal to MAX 3\n// - cut only if prompt size risks exceeding 128K\n// - NEVER drop whole Errors section to N/A if evidence exists\n\nconst base = $input.item.json || {};\nconst s = (x) => (x == null ? '' : String(x));\n\nconst MAX_CTX_CHARS = 128000 * 4; // safe char budget\nconst MAX_EXAMPLES_PER_NOMINAL = 3;\n\nconst confirmed = Array.isArray(base.confirmed_events) ? base.confirmed_events : [];\nconst dgHits = Array.isArray(base.dgA01_hits) ? base.dgA01_hits : [];\n\nfunction nominalKey(e) {\n  return [\n    s(e.component || 'Other'),\n    s(e.phrase || e.term || 'N/A')\n  ].join('|');\n}\n\n// 1) Group by nominal\nconst buckets = new Map();\nfor (const e of confirmed) {\n  const key = nominalKey(e);\n  if (!buckets.has(key)) buckets.set(key, []);\n  buckets.get(key).push(e);\n}\n\n// 2) Build evidence blocks (cap repetitions)\nconst blocks = [];\nfor (const [key, items] of buckets.entries()) {\n  const samples = items.slice(0, MAX_EXAMPLES_PER_NOMINAL);\n  for (const e of samples) {\n    const line =\n      `ts=${s(e.timestamp || 'N/A')}; ` +\n      `severity=${s(e.severity || 'Minor')}; ` +\n      `component=${s(e.component || 'Other')}; ` +\n      `code=${s(e.phrase || e.term || 'N/A')}; ` +\n      `source=${s(e.source || 'N/A')}:${s(e.line || 'N/A')}; ` +\n      `msg=${s(e.evidence || e.lineText || '').replace(/\\s+/g, ' ').slice(0, 600)}`;\n    blocks.push(line);\n  }\n}\n\n// 3) dgA01 evidence always first\nconst dgBlock = dgHits.slice(0, 3).map(h =>\n  `DG: ${s(h.evidence || '').replace(/\\s+/g, ' ').slice(0, 800)} ` +\n  `[${s(h.source || 'N/A')}:${s(h.line || 'N/A')}]`\n);\n\n// 4) Assemble compact evidence text with size guard\nlet evidenceText = [...dgBlock, ...blocks].join('\\n');\nif (evidenceText.length > MAX_CTX_CHARS) {\n  evidenceText = evidenceText.slice(0, MAX_CTX_CHARS) + '\\n[n8n] TRUNCATED';\n}\n\n// 5) Final LLM input\nconst HEADER = 'Timestamp;Severity;Component;CodeOrPhrase;Message;Source;KB';\n\nconst llm_input =\n`TASK: STORAGE / ERRORS (SECTION 4 ONLY)\n\nOUTPUT STRICT:\nTABLE: Errors\n${HEADER}\n<rows OR N/A>\n\nRULES:\n- semicolon \";\" delimiter\n- Each nominal error only once (use most representative message)\n- If dgA01 quarantine/missing disk exists — FIRST ROW must summarize it\n- Evidence-first, do NOT invent\n- NEWEST -> OLDEST\n\nEVIDENCE:\n${evidenceText || '[NO EVIDENCE]'}`.trim();\n\nreturn [{\n  json: {\n    ...base,\n    task: 'storage_errors',\n    taskOrder: 5,\n    llm_input,\n    messages: [{ role: 'user', content: llm_input }],\n    _errors_nominals: buckets.size,\n    _errors_samples_used: blocks.length,\n    _errors_compose_version: 'v7.3-nominal-cap',\n  }\n}];\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        4640,
+        -2592
+      ],
+      "id": "417f71a1-21ea-43f5-ae07-4bbee2e7d7e2",
+      "name": "Compose input ERRORS"
+    },
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3.2,
+      "position": [
+        5040,
+        -3104
+      ],
+      "id": "55ce5b65-9639-4467-b693-f855f510beee",
+      "name": "Merge 1"
+    },
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3.2,
+      "position": [
+        5456,
+        -2752
+      ],
+      "id": "885afe31-8d66-472b-b429-5e083e5a44d9",
+      "name": "Merge 3"
+    },
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3.2,
+      "position": [
+        5232,
+        -2880
+      ],
+      "id": "c186c5e7-22a2-4b0d-a122-41e9f5c12e7d",
+      "name": "Merge 2"
+    },
+    {
+      "parameters": {
+        "jsCode": "// Prepare prompt — FULL REPLACE v3-B (LOGparser leader-by-file + report meta)\n// - Leader = newest message that HAS a non-image attachment\n// - If no non-image attachment in unprocessed rows -> return []\n// - Adds ReportTimestampMSK + ReportLLM (for final report section 1)\n// - Picks sourceFileId/sourceFileName from leader message (prefer archives)\n\nfunction s(x){ return x == null ? '' : String(x); }\n\nfunction toTs(row){ const t = Number(row?.timestamp); return Number.isFinite(t) ? t : 0; }\n\nfunction parseFiles(v){\n  if (!v) return [];\n  if (Array.isArray(v)) return v;\n  if (typeof v === 'string') {\n    try { const j = JSON.parse(v); return Array.isArray(j) ? j : []; } catch { return []; }\n  }\n  return [];\n}\n\nfunction isImageFile(f){\n  const kind = s(f?.kind).toLowerCase();\n  if (kind === 'image') return true;\n  const name = s(f?.name).toLowerCase();\n  return /\\.(png|jpg|jpeg|webp|bmp|tiff|gif)$/i.test(name);\n}\n\nfunction scoreAttachment(f){\n  const name = s(f?.name).toLowerCase();\n  let sc = 0;\n  if (/\\.(zip|tar\\.gz|tgz|tar|gz|7z)$/i.test(name)) sc += 50;\n  if (/\\.(log|logs|txt|csv|xml)$/i.test(name)) sc += 10;\n  const size = Number(f?.size);\n  if (Number.isFinite(size)) sc += Math.min(20, Math.floor(size / 5_000_000)); // +1 per 5MB\n  return sc;\n}\n\nfunction nowMSK(){\n  try {\n    const d = new Date();\n    const dtf = new Intl.DateTimeFormat('en-GB', {\n      timeZone: 'Europe/Moscow',\n      year:'numeric', month:'2-digit', day:'2-digit',\n      hour:'2-digit', minute:'2-digit', second:'2-digit',\n      hour12:false\n    });\n    const parts = dtf.format(d).replace(',', '');\n    const m = parts.match(/^(\\d{2})\\/(\\d{2})\\/(\\d{4})\\s+(\\d{2}):(\\d{2}):(\\d{2})$/);\n    if (!m) return parts + ' (MSK)';\n    return `${m[1]}-${m[2]}-${m[3]} ${m[4]}:${m[5]}:${m[6]} (MSK)`;\n  } catch {\n    const d = new Date(Date.now() + 3*3600*1000);\n    return d.toISOString().replace('T',' ').replace('Z','') + ' (MSK~)';\n  }\n}\n\n// Gather rows (Read messages returns multiple items)\nconst rows = $input.all().map(it => it.json || {});\nif (!rows.length) return [];\n\nrows.sort((a,b) => toTs(a)-toTs(b));\n\nconst withFiles = rows.map(r => {\n  const files = parseFiles(r.files).map(f => ({...f, _msgId: r.id, _msgTimestamp: toTs(r)}));\n  const nonImage = files.filter(f => !isImageFile(f));\n  const hasNonImage = nonImage.length > 0;\n  return { r, files, nonImage, hasNonImage };\n});\n\nconst candidates = withFiles.filter(x => x.hasNonImage);\nif (!candidates.length) return []; // no parsing if no file\n\nconst leader = candidates.sort((a,b) => toTs(a.r)-toTs(b.r)).slice(-1)[0];\nconst leaderRow = leader.r;\n\n// Aggregate all files from all rows (keep for debug)\nconst allFiles = [];\nfor (const x of withFiles) for (const f of x.files) allFiles.push(f);\n\n// Pick source attachment from leader non-image files\nconst leaderNon = leader.nonImage.slice().sort((a,b)=>scoreAttachment(b)-scoreAttachment(a));\nconst main = leaderNon[0] || null;\n\nconst ReportTimestampMSK = nowMSK();\nconst ReportLLM = (s($env.LOGPARSER_REPORT_LLM).trim() || 'qwen2.5:32b-instruct-q8_0');\n\nreturn [{\n  json: {\n    id: leaderRow.id,\n    chatId: leaderRow.chatId ?? null,\n    login: leaderRow.login ?? null,\n\n    files: allFiles,\n    hasFile: allFiles.length > 0,\n    hasImage: allFiles.some(isImageFile),\n    hasNonImage: allFiles.some(f => !isImageFile(f)),\n\n    // selected attachment for all downstream extractors\n    sourceFileId: main ? (main.file_id || main.id || '') : '',\n    sourceFileName: main ? (main.name || '') : '',\n\n    // report metadata\n    ReportTimestampMSK,\n    ReportLLM,\n\n    // routing\n    wantsLogParsing: true,\n    wantsTxt: true,\n    lastUserText: '',\n\n    // leader flags (single item anyway)\n    isLeader: true,\n    myId: leaderRow.id,\n    leaderId: leaderRow.id,\n  }\n}];\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1808,
+        -2880
+      ],
+      "id": "556a4a03-d6d0-47df-9a80-24f6cb3d4d91",
+      "name": "Prepare prompt"
+    },
+    {
+      "parameters": {
+        "jsCode": "// Build Identify Pack — FULL REPLACE v3-B-FIX3\n// FIX: ...base -> ...base in return (was broken in ID1153)\n\nconst https = require('https');\nconst fs = require('fs');\nconst path = require('path');\nconst os = require('os');\nconst { execFileSync } = require('child_process');\nconst zlib = require('zlib');\n\nconst base = $input.item.json || {};\nfunction s(x){ return x == null ? '' : String(x); }\n\nconst MODEL_IDENTIFY = s($env.MODEL_IDENTIFY).trim() || 'qwen2.5:32b-instruct-q8_0';\nconst MAX_EVID_CHARS = Number($env.IDENTIFY_EVID_MAX_CHARS || 220000);\n\nfunction getToken(){\n  const t2 = s($env?.YANDEX_BOT_TOKEN_LOGPARSER).trim();\n  if (t2) return t2;\n  return s($env?.YANDEX_BOT_TOKEN).trim();\n}\nfunction safeHead(buf, n=200){\n  const b = Buffer.isBuffer(buf) ? buf : Buffer.from(String(buf||''), 'utf8');\n  return b.slice(0, n).toString('utf8').replace(/[^\\x09\\x0a\\x0d\\x20-\\x7e]+/g,'.');\n}\nfunction looksLikeJson(headers, buf){\n  const ct = s(headers?.['content-type']).toLowerCase();\n  if (ct.includes('application/json')) return true;\n  const h = safeHead(buf, 60).trim();\n  return h.startsWith('{') || h.startsWith('[');\n}\nfunction extractYandexJsonError(buf){\n  try {\n    const obj = JSON.parse(buf.toString('utf8'));\n    if (obj && obj.ok === false) return obj.description || obj.code || 'getFile failed';\n  } catch {}\n  return null;\n}\nfunction httpRequestBuffer({ method, hostname, path: p, headers }, bodyBuf){\n  return new Promise((resolve, reject) => {\n    const req = https.request({ method, hostname, path: p, headers }, (res) => {\n      const chunks = [];\n      res.on('data', (d) => chunks.push(Buffer.isBuffer(d) ? d : Buffer.from(d)));\n      res.on('end', () => resolve({ statusCode: (res.statusCode|0), headers: res.headers||{}, buf: Buffer.concat(chunks) }));\n    });\n    req.on('error', reject);\n    if (bodyBuf && bodyBuf.length) req.write(bodyBuf);\n    req.end();\n  });\n}\nasync function yandexGetFileBuffer(fileId){\n  const token = getToken();\n  if (!token) throw new Error('YANDEX_BOT_TOKEN_LOGPARSER/YANDEX_BOT_TOKEN is not set');\n  if (!fileId) throw new Error('file_id is empty');\n\n  const body = Buffer.from(JSON.stringify({ file_id: fileId }), 'utf8');\n  const r1 = await httpRequestBuffer(\n    {\n      method:'POST',\n      hostname:'botapi.messenger.yandex.net',\n      path:'/bot/v1/messages/getFile/',\n      headers: { 'Authorization': `OAuth ${token}`, 'Content-Type':'application/json', 'Content-Length': String(body.length) }\n    },\n    body\n  );\n\n  if (looksLikeJson(r1.headers, r1.buf)) {\n    const err = extractYandexJsonError(r1.buf);\n    if (err) throw new Error(err);\n  }\n  if (r1.statusCode >= 200 && r1.statusCode < 300) return r1.buf;\n\n  const p = `/bot/v1/messages/getFile/?file_id=${encodeURIComponent(fileId)}`;\n  const r2 = await httpRequestBuffer(\n    { method:'GET', hostname:'botapi.messenger.yandex.net', path:p, headers:{ 'Authorization': `OAuth ${token}` } },\n    null\n  );\n\n  if (looksLikeJson(r2.headers, r2.buf)) {\n    const err = extractYandexJsonError(r2.buf);\n    if (err) throw new Error(err);\n  }\n  if (r2.statusCode >= 200 && r2.statusCode < 300) return r2.buf;\n\n  throw new Error(`getFile failed: POST=${r1.statusCode} head=${safeHead(r1.buf)} | GET=${r2.statusCode} head=${safeHead(r2.buf)}`);\n}\n\nfunction sniffTypeByMagic(buf, nameLower){\n  if (buf.length >= 4 && buf[0]===0x50 && buf[1]===0x4b && buf[2]===0x03 && buf[3]===0x04) return 'zip';\n  if (buf.length >= 2 && buf[0]===0x1f && buf[1]===0x8b) {\n    if (nameLower.endsWith('.tar.gz') || nameLower.endsWith('.tgz')) return 'targz';\n    return 'gz';\n  }\n  if (buf.length >= 262 && buf.slice(257,262).toString('utf8') === 'ustar') return 'tar';\n  return 'plain';\n}\nfunction ensureDir(p){ fs.mkdirSync(p, { recursive:true }); }\nfunction decodeSmart(buf){\n  if (!Buffer.isBuffer(buf)) buf = Buffer.from(String(buf||''), 'utf8');\n  if (buf.length >= 2 && buf[0]===0xff && buf[1]===0xfe) return buf.slice(2).toString('utf16le');\n  if (buf.length >= 2 && buf[0]===0xfe && buf[1]===0xff) {\n    const swapped = Buffer.allocUnsafe(buf.length-2);\n    for (let i=2;i<buf.length;i+=2){ swapped[i-2]=buf[i+1]||0; swapped[i-1]=buf[i]||0; }\n    return swapped.toString('utf16le');\n  }\n  const nul = buf.slice(0, Math.min(buf.length, 20000)).includes(0);\n  if (nul) return '';\n  return buf.toString('utf8');\n}\nfunction walkFiles(root){\n  const out = [];\n  const stack = [root];\n  while (stack.length) {\n    const p = stack.pop();\n    const st = fs.statSync(p);\n    if (st.isDirectory()) for (const name of fs.readdirSync(p)) stack.push(path.join(p, name));\n    else if (st.isFile()) out.push(p);\n  }\n  return out;\n}\nfunction pickPrimaryLog(files){\n  let best=null, bestScore=-1;\n  for (const fp of files) {\n    const name = path.basename(fp).toLowerCase();\n    const rel = fp.toLowerCase();\n    let sc = 0;\n    if (/^store_.*\\.logs$/.test(name)) sc += 100;\n    if (name.endsWith('.logs')) sc += 20;\n    if (name.endsWith('.log') || name.endsWith('.txt')) sc += 5;\n    if (rel.includes('store')) sc += 10;\n    if (rel.includes('messages')) sc -= 5;\n    const st = fs.statSync(fp);\n    sc += Math.min(10, Math.floor(st.size / 50_000_000));\n    if (sc > bestScore) { bestScore=sc; best=fp; }\n  }\n  return best;\n}\nfunction extractCliBlock(text, marker, maxLines=3200){\n  const lines = text.split(/\\r?\\n/);\n  let i=-1;\n  for (let k=0;k<lines.length;k++){ if (lines[k].trim() === marker) { i=k; break; } }\n  if (i<0) return '';\n  const out=[];\n  for (let k=i; k<lines.length && out.length<maxLines; k++){\n    const ln = lines[k];\n    if (k>i && ln.startsWith('# ') && ln.trim() !== marker) break;\n    out.push(ln);\n  }\n  return out.join('\\n').trim();\n}\nfunction extractXmlProps(text){\n  const out = [];\n  const re = /<PROPERTY name=\"(vendor|model|product-id|product_id|product|platform|product-brand|product_brand)\">([^<]{1,80})<\\/PROPERTY>/gi;\n  let m;\n  while ((m = re.exec(text)) !== null) { out.push(`${m[1]}=${m[2]}`.trim()); if (out.length>=30) break; }\n  return out.join('\\n');\n}\n\nconst fileId = s(base.sourceFileId).trim();\nconst fileName = s(base.sourceFileName).trim() || 'attachment.bin';\nif (!fileId) throw new Error('sourceFileId is empty');\n\nconst buf = await yandexGetFileBuffer(fileId);\nconst type = sniffTypeByMagic(buf, fileName.toLowerCase());\n\nconst tmp = fs.mkdtempSync(path.join(os.tmpdir(), 'identify-'));\nconst outDir = path.join(tmp, 'out');\nensureDir(outDir);\n\ntry {\n  if (type === 'zip' || type === 'tar' || type === 'targz') {\n    const inFile = path.join(tmp, 'in' + (type==='zip'?'.zip': type==='tar'?'.tar':'.tgz'));\n    fs.writeFileSync(inFile, buf);\n    if (type === 'zip') execFileSync('unzip', ['-qq', inFile, '-d', outDir]);\n    if (type === 'tar') execFileSync('tar', ['-xf', inFile, '-C', outDir]);\n    if (type === 'targz') execFileSync('tar', ['-xzf', inFile, '-C', outDir]);\n  } else if (type === 'gz') {\n    const gunz = zlib.gunzipSync(buf);\n    fs.writeFileSync(path.join(outDir, path.basename(fileName.replace(/\\.gz$/i,'')) || 'file.txt'), gunz);\n  } else {\n    fs.writeFileSync(path.join(outDir, path.basename(fileName) || 'file.txt'), buf);\n  }\n\n  const files = walkFiles(outDir);\n  const primary = pickPrimaryLog(files) || files[0];\n  let primaryText = '';\n  if (primary) primaryText = decodeSmart(fs.readFileSync(primary));\n\n  const showSystem = extractCliBlock(primaryText, '# show system', 3200);\n  const xmlProps = extractXmlProps(primaryText);\n\n  const lines = primaryText.split(/\\r?\\n/);\n  const pick = [];\n  const reList = [\n    /Vendor Name:\\s*.+/i,\n    /Product ID:\\s*.+/i,\n    /Product Brand:\\s*.+/i,\n    /Product Name:\\s*.+/i,\n    /Model:\\s*ME\\d{3,5}/i,\n  ];\n  for (const ln of lines) {\n    for (const re of reList) {\n      if (re.test(ln)) { pick.push(ln.trim()); break; }\n    }\n    if (pick.length >= 40) break;\n  }\n\n  const evidenceParts = [];\n  if (showSystem) evidenceParts.push('=== # show system ===\\n' + showSystem);\n  if (pick.length) evidenceParts.push('=== Key lines ===\\n' + pick.join('\\n'));\n  if (xmlProps) evidenceParts.push('=== XML props ===\\n' + xmlProps);\n\n  let identify_evidence_text = evidenceParts.join('\\n\\n').trim();\n  if (!identify_evidence_text) identify_evidence_text = '[n8n] No identify evidence extracted (unexpected).';\n  if (identify_evidence_text.length > MAX_EVID_CHARS) identify_evidence_text = identify_evidence_text.slice(0, MAX_EVID_CHARS) + '\\n[n8n] TRUNCATED';\n\n  const rag_query_seed = (pick.join(' ') + ' ' + xmlProps).replace(/\\s+/g,' ').trim().slice(0, 380);\n\n  const llm_input =\n`TASK: IDENTIFY (LLM1)\n\nReturn ONLY valid JSON (no markdown) with fields:\n{\n  \"vendor\": \"...\",\n  \"class\": \"Storage|Server|Switch|Other\",\n  \"model\": \"...\",\n  \"product_name\": \"...\",\n  \"confidence\": 0.0-1.0,\n  \"evidence\": { \"vendor\":[...], \"class\":[...], \"model\":[...] }\n}\n\nRULES:\n- Evidence-first. Do NOT invent.\n- Prefer model and class from Identify RAG hints if present.\n- Vendor should be \"Dell EMC\" if logs show \"DELL EMC\".\n- If unsure -> \"N/A\".\n\nEVIDENCE:\n<<<BEGIN\n${identify_evidence_text}\nEND>>>`;\n\n  return [{\n    json: {\n      ...base,\n      task: 'identify',\n      model: MODEL_IDENTIFY,\n      identify_evidence_text,\n      rag_query_seed,\n      messages: [{ role: 'user', content: llm_input }],\n    }\n  }];\n\n} finally {\n  try { fs.rmSync(tmp, { recursive:true, force:true }); } catch {}\n}\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        2688,
+        -2880
+      ],
+      "id": "07110a5a-098e-41a0-a519-d52f875bec1d",
+      "name": "Build Identify Pack"
+    },
+    {
+      "parameters": {
+        "jsCode": "// Parse Identify Result — FULL REPLACE v2-B (JSON parse + RAG override + normalized hw_*)\n\nconst base = $input.item.json || {};\nfunction s(x){ return x == null ? '' : String(x); }\n\nfunction extractAssistantText(j){\n  if (typeof j?.message?.content === 'string') return j.message.content;\n  if (typeof j?.ollama?.message?.content === 'string') return j.ollama.message.content;\n  if (typeof j?.response === 'string') return j.response;\n  if (typeof j?.text === 'string') return j.text;\n  return '';\n}\nfunction stripFences(t){\n  t = s(t).trim();\n  const m = t.match(/^```(?:json)?\\s*([\\s\\S]*?)\\s*```$/i);\n  return m ? m[1].trim() : t;\n}\nfunction normVendor(v){\n  const u = s(v).trim();\n  const up = u.toUpperCase();\n  if (!u || u === 'N/A') return 'N/A';\n  if (up.includes('DELL EMC')) return 'Dell EMC';\n  if (up === 'DELL') return 'Dell EMC';\n  if (up.includes('HPE') || up.includes('HEWLETT')) return 'HPE';\n  if (up.includes('LENOVO')) return 'Lenovo';\n  if (up.includes('IBM')) return 'IBM';\n  if (up.includes('NETAPP')) return 'NetApp';\n  if (up.includes('CISCO')) return 'Cisco';\n  if (up.includes('BROCADE')) return 'Brocade';\n  if (up.includes('HUAWEI')) return 'Huawei';\n  return u;\n}\nfunction normClass(c){\n  const u = s(c).trim();\n  const low = u.toLowerCase();\n  if (!u || u === 'N/A') return 'N/A';\n  if (low.startsWith('stor') || low === 'starage') return 'Storage';\n  if (low.startsWith('serv')) return 'Server';\n  if (low.startsWith('swit')) return 'Switch';\n  if (low.startsWith('oth')) return 'Other';\n  return u;\n}\nfunction safeJsonParse(txt){\n  const t = stripFences(txt);\n  try { return JSON.parse(t); } catch {}\n  // try find {...}\n  const m = t.match(/\\{[\\s\\S]*\\}/);\n  if (m) { try { return JSON.parse(m[0]); } catch {} }\n  return null;\n}\n\nconst raw = extractAssistantText(base);\nconst obj = safeJsonParse(raw) || {};\n\nlet vendor = normVendor(obj.vendor || '');\nlet klass  = normClass(obj.class || obj.klass || '');\nlet model  = s(obj.model || '').trim() || 'N/A';\nlet product_name = s(obj.product_name || '').trim() || 'N/A';\nlet confidence = Number(obj.confidence);\nif (!Number.isFinite(confidence)) confidence = 0.0;\n\nconst ragBest = base.identify_rag_best;\nif (ragBest && typeof ragBest === 'object') {\n  const rbVendor = normVendor(ragBest.vendor || '');\n  const rbClass  = normClass(ragBest.class || ragBest.klass || '');\n  const rbModel  = s(ragBest.model || '').trim();\n  // override when LLM is missing/weak OR conflicts\n  if (vendor === 'N/A' && rbVendor && rbVendor !== 'N/A') vendor = rbVendor;\n  if ((klass === 'N/A' || klass === 'Other') && rbClass && rbClass !== 'N/A') klass = rbClass;\n  if ((model === 'N/A' || !model) && rbModel) model = rbModel;\n}\n\nreturn [{\n  json: {\n    ...base,\n\n    // legacy fields used by IF node\n    vendor,\n    klass,\n    modelDetected: model,\n    productNameDetected: product_name,\n    confidence,\n\n    // canonical fields\n    hw_vendor: vendor,\n    hw_class: klass,\n    hw_model: model,\n    hw_product_name: product_name,\n\n    identify_raw: raw,\n  }\n}];\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        3392,
+        -2880
+      ],
+      "id": "b41114e5-3e3c-4ced-aa56-7a90d34c83f3",
+      "name": "Parse Identify Result"
+    },
+    {
+      "parameters": {
+        "jsCode": "// LLM Request Identify — FULL REPLACE v3-B (Ollama chat, Qwen defaults + num_ctx 131072)\n\nconst base = $input.item.json || {};\nfunction s(x){ return x == null ? '' : String(x); }\n\nconst OLLAMA_URL = (String($env.OLLAMA_URL || 'http://10.10.200.9:11434')).replace(/\\/$/, '');\nconst model = s(base.model).trim() || String($env.MODEL_IDENTIFY || 'qwen2.5:32b-instruct-q8_0').trim();\n\nconst messages = Array.isArray(base.messages) ? base.messages : [{ role:'user', content:'' }];\n\ntry {\n  const resp = await this.helpers.httpRequest({\n    method: 'POST',\n    url: `${OLLAMA_URL}/api/chat`,\n    json: true,\n    body: {\n      model,\n      stream: false,\n      messages,\n      options: {\n        temperature: 0,\n        top_k: 1,\n        top_p: 1,\n        num_ctx: Number($env.IDENTIFY_NUM_CTX || 131072),\n        num_predict: Number($env.IDENTIFY_NUM_PREDICT || 600),\n      }\n    },\n    timeout: 3600000,\n  });\n\n  const content =\n    (resp && resp.message && typeof resp.message.content === 'string') ? resp.message.content :\n    (resp && resp.response && typeof resp.response === 'string') ? resp.response :\n    JSON.stringify(resp);\n\n  return [{\n    json: {\n      ...base,\n      model,\n      ollama: resp,\n      message: { role:'assistant', content },\n    }\n  }];\n\n} catch (e) {\n  const status = e?.response?.status || e?.statusCode || '';\n  const data = e?.response?.data ? JSON.stringify(e.response.data).slice(0, 2000) : '';\n  return [{\n    json: {\n      ...base,\n      model,\n      message: { role:'assistant', content: `[LLM ERROR] status=${status} ${e?.message || e}` },\n      _llm_error: true,\n      _llm_error_status: status,\n      _llm_error_data: data,\n    }\n  }];\n}\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        3152,
+        -2880
+      ],
+      "id": "b629d7a9-2e0b-4d7a-b7a2-97acc470d136",
+      "name": "LLM Request Identify"
+    },
+    {
+      "parameters": {
+        "jsCode": "// Ingest Attachments (Universal) — FULL REPLACE v2-B-FIX5\n// FIX: ...base -> ...base\n\nfunction s(x){ return x == null ? '' : String(x); }\nconst base = $input.item.json || {};\n\nfunction isImageFile(f){\n  const kind = s(f?.kind).toLowerCase();\n  if (kind === 'image') return true;\n  const name = s(f?.name).toLowerCase();\n  return /\\.(png|jpg|jpeg|webp|bmp|tiff|gif)$/i.test(name);\n}\nfunction scoreAttachment(f){\n  const name = s(f?.name).toLowerCase();\n  let sc = 0;\n  if (/\\.(zip|tar\\.gz|tgz|tar|gz|7z)$/i.test(name)) sc += 50;\n  if (/\\.(log|logs|txt|csv|xml)$/i.test(name)) sc += 10;\n  const size = Number(f?.size);\n  if (Number.isFinite(size)) sc += Math.min(20, Math.floor(size / 5_000_000));\n  return sc;\n}\n\nlet sourceFileId = s(base.sourceFileId).trim();\nlet sourceFileName = s(base.sourceFileName).trim();\n\nif ((!sourceFileId || !sourceFileName) && Array.isArray(base.files)) {\n  const non = base.files\n    .filter(f => !isImageFile(f))\n    .slice()\n    .sort((a,b)=>scoreAttachment(b)-scoreAttachment(a));\n  const main = non[0];\n  if (main) {\n    sourceFileId = sourceFileId || s(main.file_id || main.id).trim();\n    sourceFileName = sourceFileName || s(main.name).trim();\n  }\n}\n\nreturn [{\n  json: {\n    ...base,\n    sourceFileId,\n    sourceFileName,\n  }\n}];\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        2464,
+        -2880
+      ],
+      "id": "592eea14-0dce-4112-b290-64cee700df6a",
+      "name": "Ingest Attachments (Universal)"
+    },
+    {
+      "parameters": {
+        "jsCode": "// RAG Identify Lookup (offline) — FULL REPLACE v2-B-FIX8\n// FIX: ...base and ...(TOKEN ? ...) spreads\n\nconst base = $input.item.json || {};\nfunction s(x){ return x == null ? '' : String(x); }\n\nconst RAG_URL = (String($env.RAG_API_URL || 'http://rag-api:8099')).replace(/\\/$/, '');\nconst TOKEN = String($env.RAG_API_TOKEN || '').trim();\nconst TOP_K = Number($env.RAG_IDENTIFY_TOP_K || 25);\n\nfunction guessVendor(text){\n  const t = (text||'').toUpperCase();\n  if (t.includes('DELL EMC') || t.includes('DELL')) return 'Dell EMC';\n  if (t.includes('HPE') || t.includes('HEWLETT')) return 'HPE';\n  if (t.includes('LENOVO')) return 'Lenovo';\n  if (t.includes('NETAPP')) return 'NetApp';\n  if (t.includes('CISCO')) return 'Cisco';\n  if (t.includes('BROCADE')) return 'Brocade';\n  if (t.includes('HUAWEI')) return 'Huawei';\n  if (t.includes('IBM')) return 'IBM';\n  return 'N/A';\n}\nfunction guessKlass(text){\n  const t = (text||'').toUpperCase();\n  if (/\\bME\\d{3,5}\\b/.test(t) || t.includes('DISK GROUP') || t.includes('ENCLOSURE')) return 'Storage';\n  return 'Other';\n}\nfunction clip(x, n){ x=s(x); return x.length<=n?x:x.slice(0,n); }\n\nconst evidence = s(base.identify_evidence_text);\nconst vendor = guessVendor(evidence);\nconst klass = guessKlass(evidence);\nconst query = clip((s(base.rag_query_seed).trim() || evidence.replace(/\\s+/g,' ').trim()), 380);\n\nif (!vendor || vendor === 'N/A') {\n  return [{\n    json: {\n      ...base,\n      identify_rag_best: null,\n      identify_rag_hints: '',\n      _rag_identify_error: 'vendor_missing',\n      rag_identify_query: query,\n      rag_identify_vendor: vendor,\n      rag_identify_klass: klass,\n    }\n  }];\n}\n\ntry {\n  const resp = await this.helpers.httpRequest({\n    method: 'POST',\n    url: `${RAG_URL}/search/all`,\n    json: true,\n    timeout: 30000,\n    headers: {\n      ...(TOKEN ? { Authorization: TOKEN.startsWith('Bearer ') ? TOKEN : `Bearer ${TOKEN}` } : {}),\n      'Content-Type': 'application/json',\n    },\n    body: { query, vendor, klass, top_k: TOP_K },\n  });\n\n  const docs = Array.isArray(resp?.docs) ? resp.docs : (Array.isArray(resp?.hits?.docs) ? resp.hits.docs : []);\n  const cat  = Array.isArray(resp?.event_catalog) ? resp.event_catalog : (Array.isArray(resp?.hits?.event_catalog) ? resp.hits.event_catalog : []);\n\n  let best = null;\n  for (const h of cat) {\n    const m = s(h.model).trim();\n    const c = s(h.class || h.klass).trim();\n    if (!m && !c) continue;\n    best = {\n      vendor: s(h.vendor).trim() || vendor,\n      class: c || klass,\n      model: m || 'N/A',\n      product_name: s(h.product_name || '').trim() || 'N/A',\n      ref: s(h.rel_path || h.file_name || '').trim(),\n      page: h.page,\n      score: h.score,\n      phrase: s(h.phrase || '').trim(),\n    };\n    break;\n  }\n\n  if (!best) {\n    for (const d of docs) {\n      const ex = s(d.excerpt || d.text || '').toUpperCase();\n      const mm = ex.match(/\\bME\\d{3,5}\\b/);\n      if (mm) { best = { vendor, class: klass, model: mm[0], product_name:'N/A', ref: s(d.rel_path||d.file_name), page:d.page, score:d.score, phrase:'' }; break; }\n    }\n  }\n\n  const hints = [];\n  if (best) {\n    const ref = best.ref ? `ref=${best.ref}${best.page!=null?` p.${best.page}`:''}` : '';\n    hints.push(`BEST: vendor=\"${best.vendor}\" class=\"${best.class}\" model=\"${best.model}\" ${ref}`.trim());\n  }\n  let n=0;\n  for (const h of cat.slice(0, 8)) {\n    const ph = s(h.phrase).trim();\n    const m = s(h.model).trim();\n    const c = s(h.class||h.klass).trim();\n    const ref = s(h.rel_path||h.file_name).trim();\n    if (!ph && !m) continue;\n    hints.push(`- ${m||'N/A'} | ${c||'N/A'} | ${ph||'.'} | ${ref}${h.page!=null?` p.${h.page}`:''}`.trim());\n    if (++n>=8) break;\n  }\n\n  return [{\n    json: {\n      ...base,\n      rag_identify_query: query,\n      rag_identify_vendor: vendor,\n      rag_identify_klass: klass,\n      identify_rag_best: best,\n      identify_rag_hints: hints.join('\\n'),\n    }\n  }];\n\n} catch (e) {\n  return [{\n    json: {\n      ...base,\n      rag_identify_query: query,\n      rag_identify_vendor: vendor,\n      rag_identify_klass: klass,\n      identify_rag_best: null,\n      identify_rag_hints: '',\n      _rag_identify_error: s(e?.message || e),\n    }\n  }];\n}\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        2896,
+        -2880
+      ],
+      "id": "74a037f9-78d6-41c8-a8a7-6676d0087ea0",
+      "name": "RAG Identify Lookup (offline)"
+    },
+    {
+      "parameters": {
+        "jsCode": "// LLM Request Storage Structure — FULL REPLACE v3-B-FIX5\n// FIX: \".base\" -> \"...base\" (catch), Qwen default, num_ctx=131072\n\nconst base = $input.item.json || {};\nfunction s(x){ return x == null ? '' : String(x); }\n\nconst OLLAMA_URL = (String($env.OLLAMA_URL || 'http://10.10.200.9:11434')).replace(/\\/$/, '');\nconst model = s(base.model).trim() || 'qwen2.5:32b-instruct-q8_0';\nconst messages = Array.isArray(base.messages) ? base.messages : [{ role: 'user', content: '' }];\n\ntry {\n  const resp = await this.helpers.httpRequest({\n    method: 'POST',\n    url: `${OLLAMA_URL}/api/chat`,\n    json: true,\n    body: {\n      model,\n      stream: false,\n      messages,\n      options: {\n        temperature: 0,\n        top_k: 1,\n        top_p: 1,\n        num_ctx: Number($env.STORAGE_NUM_CTX || 131072),\n        num_predict: Number($env.STORAGE_NUM_PREDICT || 3500),\n      },\n    },\n    timeout: 3600000,\n  });\n\n  const content =\n    (resp && resp.message && typeof resp.message.content === 'string') ? resp.message.content :\n    (typeof resp.response === 'string') ? resp.response :\n    JSON.stringify(resp);\n\n  return [{\n    json: {\n      ...base,\n      model,\n      ollama: resp,\n      message: { role: 'assistant', content: String(content || '').trim() },\n    }\n  }];\n\n} catch (e) {\n  const status = e?.response?.status || e?.statusCode || '';\n  const data = e?.response?.data ? JSON.stringify(e.response.data).slice(0, 2000) : '';\n  return [{\n    json: {\n      ...base,\n      model,\n      message: { role: 'assistant', content: `[LLM ERROR] status=${status} ${e?.message || e}` },\n      _llm_error: true,\n      _llm_error_status: status,\n      _llm_error_data: data,\n    }\n  }];\n}\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        4784,
+        -3168
+      ],
+      "id": "f0f89163-60e0-4990-bd45-3eded0604d18",
+      "name": "LLM Request Storage Structure"
+    },
+    {
+      "parameters": {
+        "jsCode": "// LLM Request Storage Disk — FULL REPLACE v3-B-FIX9\n// FIX: ...base -> ...base in catch; do NOT store full resp (memory)\n\nconst base = $input.item.json || {};\nfunction s(x){ return x == null ? '' : String(x); }\n\nconst OLLAMA_URL = (String($env.OLLAMA_URL || 'http://10.10.200.9:11434')).replace(/\\/$/, '');\nconst model = s(base.model).trim() || 'qwen2.5:32b-instruct-q8_0';\nconst messages = Array.isArray(base.messages) ? base.messages : [{ role: 'user', content: '' }];\n\nfunction pickMeta(resp){\n  const o = resp || {};\n  return {\n    model: o.model,\n    created_at: o.created_at,\n    done: o.done,\n    total_duration: o.total_duration,\n    load_duration: o.load_duration,\n    prompt_eval_count: o.prompt_eval_count,\n    prompt_eval_duration: o.prompt_eval_duration,\n    eval_count: o.eval_count,\n    eval_duration: o.eval_duration,\n  };\n}\n\ntry {\n  const resp = await this.helpers.httpRequest({\n    method: 'POST',\n    url: `${OLLAMA_URL}/api/chat`,\n    json: true,\n    body: {\n      model,\n      stream: false,\n      messages,\n      options: {\n        temperature: 0,\n        top_k: 1,\n        top_p: 1,\n        num_ctx: Number($env.STORAGE_NUM_CTX || 131072),\n        num_predict: Number($env.STORAGE_NUM_PREDICT || 3500),\n      },\n    },\n    timeout: 3600000,\n  });\n\n  const content =\n    (resp && resp.message && typeof resp.message.content === 'string') ? resp.message.content :\n    (typeof resp.response === 'string') ? resp.response :\n    JSON.stringify(resp);\n\n  return [{\n    json: {\n      ...base,\n      model,\n      ollama_meta: pickMeta(resp),\n      message: { role: 'assistant', content: String(content || '').trim() },\n    }\n  }];\n\n} catch (e) {\n  const status = e?.response?.status || e?.statusCode || '';\n  const data = e?.response?.data ? JSON.stringify(e.response.data).slice(0, 1200) : '';\n  return [{\n    json: {\n      ...base,\n      model,\n      message: { role: 'assistant', content: `[LLM ERROR] status=${status} ${e?.message || e}` },\n      _llm_error: true,\n      _llm_error_status: status,\n      _llm_error_data: data,\n    }\n  }];\n}\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        4784,
+        -2976
+      ],
+      "id": "8697ed0d-b977-450e-8272-50d407131a72",
+      "name": "LLM Request Storage Disk"
+    },
+    {
+      "parameters": {
+        "jsCode": "// LLM Request Storage Errors — FULL REPLACE v7.2-dedup\n// Fix: Deduplicate identical TSV rows in TABLE: Errors (LLM sometimes repeats rows).\n// Keeps strict output: TABLE: Errors + HEADER + rows|N/A\n// Memory-safe: store only ollama_meta.\n\nconst base = $input.item.json || {};\nfunction s(x){ return x == null ? '' : String(x); }\n\nconst OLLAMA_URL = (String($env.OLLAMA_URL || 'http://10.10.200.9:11434')).replace(/\\/$/, '');\nconst model = s(base.model).trim() || 'qwen2.5:32b-instruct-q8_0';\nconst messages = Array.isArray(base.messages) ? base.messages : [{ role: 'user', content: '' }];\n\nconst HEADER = 'Timestamp;Severity;Component;CodeOrPhrase;Message;Source;KB';\n\nconst OPTS = {\n  temperature: 0,\n  top_k: 1,\n  top_p: 1,\n  num_ctx: Number($env.STORAGE_NUM_CTX || 131072),\n  num_predict: Number($env.STORAGE_NUM_PREDICT || 3500),\n};\n\nfunction pickMeta(resp){\n  const o = resp || {};\n  return {\n    model: o.model,\n    created_at: o.created_at,\n    done: o.done,\n    done_reason: o.done_reason,\n    total_duration: o.total_duration,\n    load_duration: o.load_duration,\n    prompt_eval_count: o.prompt_eval_count,\n    prompt_eval_duration: o.prompt_eval_duration,\n    eval_count: o.eval_count,\n    eval_duration: o.eval_duration,\n  };\n}\n\nfunction extractAssistantText(resp){\n  if (typeof resp?.message?.content === 'string') return resp.message.content;\n  if (typeof resp?.response === 'string') return resp.response;\n  return '';\n}\n\nfunction stripThink(t){ return s(t).replace(/<think>[\\s\\S]*?<\\/think>/gi, '').trim(); }\nfunction stripFences(t){\n  const x = s(t).trim();\n  const m = x.match(/^```[a-z0-9_-]*\\s*([\\s\\S]*?)\\s*```$/i);\n  return m ? m[1].trim() : x;\n}\n\n// Keep only TABLE: Errors block (if model outputs extra garbage)\nfunction extractErrorsBlock(raw){\n  let t = stripFences(stripThink(raw));\n  t = t.replace(/\\r\\n/g, '\\n');\n\n  // Find first occurrence of TABLE: Errors\n  const idx = t.toLowerCase().indexOf('table: errors');\n  if (idx === -1) return t.trim();\n\n  t = t.slice(idx).trim();\n\n  // If there are other \"TABLE:\" sections after errors, cut before them\n  const rest = t.slice('TABLE: Errors'.length);\n  const nextTable = rest.toLowerCase().indexOf('\\ntable: ');\n  if (nextTable !== -1) {\n    t = ('TABLE: Errors' + rest.slice(0, nextTable)).trim();\n  }\n  return t.trim();\n}\n\n// Ensure strict format and dedupe rows\nfunction normalizeAndDedupe(tableText){\n  let t = s(tableText).replace(/\\r\\n/g, '\\n').trim();\n\n  // If model returned only rows without TABLE label, add it\n  if (!t.toLowerCase().startsWith('table: errors')) {\n    // If it starts with header, prepend TABLE\n    if (t.startsWith(HEADER)) t = `TABLE: Errors\\n${t}`;\n    else t = `TABLE: Errors\\n${HEADER}\\nN/A`;\n  }\n\n  const lines = t.split('\\n').map(x => x.trim()).filter(x => x.length > 0);\n\n  // Locate TABLE line\n  let tableI = lines.findIndex(x => x.toLowerCase() === 'table: errors');\n  if (tableI === -1) tableI = 0;\n\n  // Locate header line after TABLE\n  let headerI = -1;\n  for (let i = tableI + 1; i < lines.length; i++) {\n    if (lines[i] === HEADER) { headerI = i; break; }\n  }\n\n  // If missing header, force minimal\n  if (headerI === -1) {\n    return { out: `TABLE: Errors\\n${HEADER}\\nN/A`, removed: 0 };\n  }\n\n  // Data lines after header\n  const data = [];\n  for (let i = headerI + 1; i < lines.length; i++) {\n    const ln = lines[i];\n    if (!ln) continue;\n    // stop if a new TABLE starts (safety)\n    if (ln.toLowerCase().startsWith('table: ')) break;\n    data.push(ln);\n  }\n\n  // If model repeated header in middle — remove those\n  const filtered = data.filter(x => x !== HEADER);\n\n  // Dedup exact duplicate rows\n  const seen = new Set();\n  const uniq = [];\n  let removed = 0;\n  for (const row of filtered) {\n    const key = row.trim();\n    if (!key) continue;\n    if (key.toUpperCase() === 'N/A') {\n      // Keep only one N/A if there are no real rows\n      continue;\n    }\n    if (seen.has(key)) { removed++; continue; }\n    seen.add(key);\n    uniq.push(key);\n  }\n\n  const finalRows = uniq.length ? uniq : ['N/A'];\n\n  const out = [\n    'TABLE: Errors',\n    HEADER,\n    ...finalRows\n  ].join('\\n').trim();\n\n  return { out, removed };\n}\n\nfunction looksValid(tableText){\n  const t = s(tableText).replace(/\\r\\n/g, '\\n').trim();\n  return t.toLowerCase().includes('table: errors') && t.includes(HEADER);\n}\n\nasync function callOllama(msgs){\n  return await this.helpers.httpRequest({\n    method: 'POST',\n    url: `${OLLAMA_URL}/api/chat`,\n    json: true,\n    body: {\n      model,\n      stream: false,\n      messages: msgs,\n      options: OPTS,\n    },\n    timeout: 3600000,\n  });\n}\n\ntry {\n  // 1) Main call\n  const resp1 = await callOllama.call(this, messages);\n  const raw1 = extractAssistantText(resp1);\n  const block1 = extractErrorsBlock(raw1);\n  let { out: norm1, removed: removed1 } = normalizeAndDedupe(block1);\n\n  // 2) Optional repair if missing TABLE/HEADER\n  if (!looksValid(norm1)) {\n    const repairPrompt =\n      `REPAIR OUTPUT. Return ONLY:\\nTABLE: Errors\\n${HEADER}\\n<rows or N/A>\\n\\nHere is your previous output:\\n<<<\\n${block1}\\n>>>`;\n    const resp2 = await callOllama.call(this, [{ role: 'user', content: repairPrompt }]);\n    const raw2 = extractAssistantText(resp2);\n    const block2 = extractErrorsBlock(raw2);\n    const fixed = normalizeAndDedupe(block2);\n    norm1 = fixed.out;\n    removed1 += fixed.removed;\n  }\n\n  return [{\n    json: {\n      ...base,\n      model,\n      ollama_meta: pickMeta(resp1),\n      message: { role: 'assistant', content: norm1 },\n      _errors_dedup_removed: removed1,\n    }\n  }];\n\n} catch (e) {\n  const status = e?.response?.status || e?.statusCode || '';\n  const data = e?.response?.data ? JSON.stringify(e.response.data).slice(0, 1200) : '';\n  return [{\n    json: {\n      ...base,\n      model,\n      message: { role: 'assistant', content: `[LLM ERROR] status=${status} ${e?.message || e}` },\n      _llm_error: true,\n      _llm_error_status: status,\n      _llm_error_data: data,\n    }\n  }];\n}\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        4928,
+        -2592
+      ],
+      "id": "4fea8f25-e9d6-46c7-8d80-5ec8afeb0cfd",
+      "name": "LLM Request Storage Errors"
+    },
+    {
+      "parameters": {
+        "jsCode": "// 4) LLM Request Storage Periphery — FULL REPLACE v3-B-FIX7\n// FIX: \".base\" in catch -> \"...base\"\n\nconst base = $input.item.json || {};\nfunction s(x){ return x == null ? '' : String(x); }\n\nconst OLLAMA_URL = (String($env.OLLAMA_URL || 'http://10.10.200.9:11434')).replace(/\\/$/, '');\nconst model = s(base.model).trim() || 'qwen2.5:32b-instruct-q8_0';\nconst messages = Array.isArray(base.messages) ? base.messages : [{ role: 'user', content: '' }];\n\ntry {\n  const resp = await this.helpers.httpRequest({\n    method: 'POST',\n    url: `${OLLAMA_URL}/api/chat`,\n    json: true,\n    body: {\n      model,\n      stream: false,\n      messages,\n      options: {\n        temperature: 0,\n        top_k: 1,\n        top_p: 1,\n        num_ctx: Number($env.STORAGE_NUM_CTX || 131072),\n        num_predict: Number($env.STORAGE_NUM_PREDICT || 3500),\n      },\n    },\n    timeout: 3600000,\n  });\n\n  const content =\n    (resp && resp.message && typeof resp.message.content === 'string') ? resp.message.content :\n    (typeof resp.response === 'string') ? resp.response :\n    JSON.stringify(resp);\n\n  return [{\n    json: {\n      ...base,\n      model,\n      ollama: resp,\n      message: { role: 'assistant', content: String(content || '').trim() },\n    }\n  }];\n\n} catch (e) {\n  const status = e?.response?.status || e?.statusCode || '';\n  const data = e?.response?.data ? JSON.stringify(e.response.data).slice(0, 2000) : '';\n  return [{\n    json: {\n      ...base,\n      model,\n      message: { role: 'assistant', content: `[LLM ERROR] status=${status} ${e?.message || e}` },\n      _llm_error: true,\n      _llm_error_status: status,\n      _llm_error_data: data,\n    }\n  }];\n}\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        4784,
+        -2784
+      ],
+      "id": "547f6bce-255a-4a93-b2a5-2e429eb974d2",
+      "name": "LLM Request Storage Periphery"
+    }
+  ],
+  "pinData": {
+    "Webhook": [
+      {
+        "json": {
+          "headers": {
+            "connection": "upgrade",
+            "host": "n8n.itcost.ru",
+            "x-real-ip": "10.10.200.1",
+            "x-forwarded-for": "10.10.200.1",
+            "x-forwarded-proto": "https",
+            "content-length": "375",
+            "user-agent": "Mozilla/5.0 (compatible; YandexUserproxy; robot; +http://yandex.com/bots)",
+            "accept-encoding": "gzip, x-gzip, deflate",
+            "content-type": "application/json; charset=UTF-8"
+          },
+          "params": {},
+          "query": {},
+          "body": {
+            "updates": [
+              {
+                "message_id": 1763730909592004,
+                "timestamp": 1763730909,
+                "chat": {
+                  "type": "private"
+                },
+                "from": {
+                  "id": "360eed3e-84b1-40cd-8af5-f9042df164ad",
+                  "display_name": "Кузин Евгений",
+                  "login": "kuzin@itcost.ru",
+                  "robot": false
+                },
+                "update_id": 1763730909592004,
+                "text": "Как сам?"
+              }
+            ]
+          },
+          "webhookUrl": "http://localhost:5678/webhook/Assistbot",
+          "executionMode": "production"
+        }
+      }
+    ]
+  },
+  "connections": {
+    "Webhook": {
+      "main": [
+        [
+          {
+            "node": "Extract message",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Extract message": {
+      "main": [
+        [
+          {
+            "node": "Data message",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Prepare reply": {
+      "main": [
+        [
+          {
+            "node": "If file",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Data message": {
+      "main": [
+        [
+          {
+            "node": "Read messages",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Read messages": {
+      "main": [
+        [
+          {
+            "node": "Prepare prompt",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "If  leader": {
+      "main": [
+        [
+          {
+            "node": "Update row(s)",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Ingest Attachments (Universal)",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Stop",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "If file": {
+      "main": [
+        [
+          {
+            "node": "Send file",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Send Text",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "IF klass == \"Storage\"": {
+      "main": [
+        [
+          {
+            "node": "Storage Structure Extract",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Storage Disks Extract",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Storage Periphery Extract",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Storage Error Candidates",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Storage Structure Extract": {
+      "main": [
+        [
+          {
+            "node": "Compose Storage Structure input",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Storage Disks Extract": {
+      "main": [
+        [
+          {
+            "node": "Compose Storage Disk input",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Storage Periphery Extract": {
+      "main": [
+        [
+          {
+            "node": "Compose Storage Periphery input",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Storage Error Candidates": {
+      "main": [
+        [
+          {
+            "node": "RAG Retrieve Storage (offline)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Assemble Storage Report": {
+      "main": [
+        [
+          {
+            "node": "Prepare reply",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Compose Storage Structure input": {
+      "main": [
+        [
+          {
+            "node": "LLM Request Storage Structure",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Compose Storage Disk input": {
+      "main": [
+        [
+          {
+            "node": "LLM Request Storage Disk",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Compose Storage Periphery input": {
+      "main": [
+        [
+          {
+            "node": "LLM Request Storage Periphery",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "RAG Retrieve Storage (offline)": {
+      "main": [
+        [
+          {
+            "node": "RAG Target Matcher",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "RAG Target Matcher": {
+      "main": [
+        [
+          {
+            "node": "Compose input ERRORS",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Compose input ERRORS": {
+      "main": [
+        [
+          {
+            "node": "LLM Request Storage Errors",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Merge 1": {
+      "main": [
+        [
+          {
+            "node": "Merge 2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Merge 3": {
+      "main": [
+        [
+          {
+            "node": "Assemble Storage Report",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Merge 2": {
+      "main": [
+        [
+          {
+            "node": "Merge 3",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Prepare prompt": {
+      "main": [
+        [
+          {
+            "node": "If  leader",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Build Identify Pack": {
+      "main": [
+        [
+          {
+            "node": "RAG Identify Lookup (offline)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Parse Identify Result": {
+      "main": [
+        [
+          {
+            "node": "IF klass == \"Storage\"",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "LLM Request Identify": {
+      "main": [
+        [
+          {
+            "node": "Parse Identify Result",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Ingest Attachments (Universal)": {
+      "main": [
+        [
+          {
+            "node": "Build Identify Pack",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "RAG Identify Lookup (offline)": {
+      "main": [
+        [
+          {
+            "node": "LLM Request Identify",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "LLM Request Storage Structure": {
+      "main": [
+        [
+          {
+            "node": "Merge 1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "LLM Request Storage Disk": {
+      "main": [
+        [
+          {
+            "node": "Merge 1",
+            "type": "main",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "LLM Request Storage Errors": {
+      "main": [
+        [
+          {
+            "node": "Merge 3",
+            "type": "main",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "LLM Request Storage Periphery": {
+      "main": [
+        [
+          {
+            "node": "Merge 2",
+            "type": "main",
+            "index": 1
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1",
+    "timezone": "Europe/Moscow",
+    "callerPolicy": "workflowsFromSameOwner",
+    "availableInMCP": false
+  },
+  "versionId": "de24eee7-6add-4108-aeb6-89a23de95441",
+  "meta": {
+    "instanceId": "b7aa380705656969fa39759e0868f4a2cdd733e71248db37848cd014e207c2bc"
+  },
+  "id": "D2kDm2q0ZjabLod1",
+  "tags": []
+}

@@ -1,0 +1,115 @@
+﻿1) Parser metadata:
+   - LLM: qwen2.5:32b-instruct-q8_0
+   - Timestamp (MSK): 03-02-2026 00:26:58 (MSK)
+
+2) Hardware identification:
+Vendor: Dell EMC
+Class: Storage
+Model: ME4012
+TABLE: Enclosures
+EnclId  EnclWWN           Vendor   Model        TopLevelAssemblyPartNumber  EMP_A        EMP_B        MidplaneType  Health
+0       500C0FF05DADDC3C  DellEMC  Array212CNC  B8VBDN3                     00:127 52CC  01:127 52CC  2U12-D-12G    OK
+1       500C0FF0F1DDDD3C  DellEMC  Array584EMM  3YT0RD3                     00:255 52CC  01:255 52CC  5U84-12G      OK
+2       500C0FF0F1EB063C  DellEMC  Array584EMM  7YT0RD3                     00:383 52CC  01:383 52CC  5U84-12G      OK
+======================================================
+TABLE: Controllers
+Controller  Status       SerialNumber             RedundancyMode     RedundancyStatus
+A           Operational  CN0H0GFGFCG0023E3RDCA01  Active-Active ULP  Redundant
+B           Operational  CN0H0GFGFCG0023E3RCRA01  Active-Active ULP  Redundant
+
+3) Component status:
+TABLE: Disks
+Location  SerialNumber  Vendor   Description  Usage         DiskGroup  Pool  Tier     Size     SecFmt  SpeedKRPM  Health
+0.0       3180A0N7F9SH  TOSHIBA  SAS MDL      VIRTUAL POOL  dgA01            Archive  16.0TB   512e    7          OK
+0.1       2120A2DXF9SH  TOSHIBA  SAS MDL      VIRTUAL POOL  dgB01      B     Archive  16.0TB   512e    7          OK
+0.2       2120A1URF9SH  TOSHIBA  SAS MDL      VIRTUAL POOL  dgA01            Archive  16.0TB   512e    7          OK
+0.3       2120A1UVF9SH  TOSHIBA  SAS MDL      VIRTUAL POOL  dgB01      B     Archive  16.0TB   512e    7          OK
+0.4       2120A2E0F9SH  TOSHIBA  SAS MDL      VIRTUAL POOL  dgA01            Archive  16.0TB   512e    7          OK
+0.5       3180A0MHF9SH  TOSHIBA  SAS MDL      VIRTUAL POOL  dgB01      B     Archive  16.0TB   512e    7          OK
+0.6       3170A002F9SH  TOSHIBA  SAS MDL      VIRTUAL POOL  dgA01            Archive  16.0TB   512e    7          OK
+0.7       3170A00HF9SH  TOSHIBA  SAS MDL      VIRTUAL POOL  dgB01      B     Archive  16.0TB   512e    7          OK
+0.8       3180A1Q7F9SH  TOSHIBA  SAS MDL      VIRTUAL POOL  dgA01            Archive  16.0TB   512e    7          OK
+0.9       3180A1R1F9SH  TOSHIBA  SAS MDL      VIRTUAL POOL  dgB01      B     Archive  16.0TB   512e    7          OK
+0.10      2120A237F9SH  TOSHIBA  SAS MDL      VIRTUAL POOL  dgA01            Archive  16.0TB   512e    7          OK
+0.11      3160A0P6F9SH  TOSHIBA  SAS MDL      VIRTUAL POOL  dgB01      B     Archive  16.0TB   512e    7          OK
+1.0       3WJMEYMJ      WDC      SAS MDL      VIRTUAL POOL  dgA01            Archive  16.0TB   512e    7          OK
+1.1       2120A2GPF9SH  TOSHIBA  SAS MDL      VIRTUAL POOL  dgB01      B     Archive  16.0TB   512e    7          OK
+1.2       5EGG1KAY      WDC      SAS MDL      AVAIL                                   Archive  16.0TB  512e       7       Unknown
+1.3       ZL2CFG73      SEAGATE  SAS MDL      VIRTUAL POOL  dgB01      B     Archive  16.0TB   512e    7          OK
+1.4       2BHSETUD      WDC      SAS MDL      VIRTUAL POOL  dgA01            Archive  16.0TB   512e    7          OK
+1.5       ZL2CG6P5      SEAGATE  SAS MDL      VIRTUAL POOL  dgB01      B     Archive  16.0TB   512e    7          OK
+1.6       ZL2B9Q18      SEAGATE  SAS MDL      VIRTUAL POOL  dgA01            Archive  16.0TB   512e    7          OK
+1.7       ZL2B9PRF      SEAGATE  SAS MDL      VIRTUAL POOL  dgB01      B     Archive  16.0TB   512e    7          OK
+1.8       ZL2B9CV6      SEAGATE  SAS MDL      VIRTUAL POOL  dgA01            Archive  16.0TB   512e    7          OK
+1.9       ZL2B94TH      SEAGATE  SAS MDL      VIRTUAL POOL  dgB01      B     Archive  16.0TB   512e    7          OK
+1.10      ZL2B9BPZ      SEAGATE  SAS MDL      VIRTUAL POOL  dgA01            Archive  16.0TB   512e    7          OK
+1.11      ZL2BJPB2      SEAGATE  SAS MDL      VIRTUAL POOL  dgB01      B     Archive  16.0TB   512e    7          OK
+1.12      ZL2CG6E9      SEAGATE  SAS MDL      VIRTUAL POOL  dgA01            Archive  16.0TB   512e    7          OK
+1.13      ZL2EXDV2      SEAGATE  SAS MDL      VIRTUAL POOL  dgB01      B     Archive  16.0TB   512e    7          OK
+1.14      2120A2AYF9SH  TOSHIBA  SAS MDL      VIRTUAL POOL  dgA01            Archive  16.0TB   512e    7          OK
+1.15      2270A00CFRWH  TOSHIBA  SAS MDL      VIRTUAL POOL  dgB01      B     Archive  16.0TB   512e    7          OK
+1.16      ZL2C7ZT4      SEAGATE  SAS MDL      VIRTUAL POOL  dgA01            Archive  16.0TB   512e    7          OK
+1.17      2BJGYHVD      WDC      SAS MDL      VIRTUAL POOL  dgB01      B     Archive  16.0TB   512e    7          OK
+1.18      2BHSE1XD      WDC      SAS MDL      VIRTUAL POOL  dgA01            Archive  16.0TB   512e    7          OK
+1.19      ZL2B9NX6      SEAGATE  SAS MDL      VIRTUAL POOL  dgB01      B     Archive  16.0TB   512e    7          OK
+1.20      ZL2B9WH1      SEAGATE  SAS MDL      VIRTUAL POOL  dgA01            Archive  16.0TB   512e    7          OK
+1.21      ZL2B9NKN      SEAGATE  SAS MDL      VIRTUAL POOL  dgB01      B     Archive  16.0TB   512e    7          OK
+1.22      ZL2B9WNB      SEAGATE  SAS MDL      VIRTUAL POOL  dgA01            Archive  16.0TB   512e    7          OK
+1.23      ZL2B9WG9      SEAGATE  SAS MDL      VIRTUAL POOL  dgB01      B     Archive  16.0TB   512e    7          OK
+1.42      2CHNPNAP      WDC      SAS MDL      VIRTUAL POOL  dgA01            Archive  16.0TB   512e    7          OK
+1.43      3WJRT8XK      WDC      SAS MDL      VIRTUAL POOL  dgB01      B     Archive  16.0TB   512e    7          OK
+1.44      ZL2B961J      SEAGATE  SAS MDL      VIRTUAL POOL  dgA01            Archive  16.0TB   512e    7          OK
+1.45      ZL2CFRNW      SEAGATE  SAS MDL      VIRTUAL POOL  dgB01      B     Archive  16.0TB   512e    7          OK
+1.46      ZL2B961C      SEAGATE  SAS MDL      VIRTUAL POOL  dgA01            Archive  16.0TB   512e    7          OK
+1.47      ZL2B9CQ8      SEAGATE  SAS MDL      VIRTUAL POOL  dgB01      B     Archive  16.0TB   512e    7          OK
+1.48      ZL2BAQKM      SEAGATE  SAS MDL      VIRTUAL POOL  dgA01            Archive  16.0TB   512e    7          OK
+1.49      ZL2B957V      SEAGATE  SAS MDL      VIRTUAL POOL  dgB01      B     Archive  16.0TB   512e    7          OK
+1.50      ZL2B9NGQ      SEAGATE  SAS MDL      VIRTUAL POOL  dgA01            Archive  16.0TB   512e    7          OK
+1.51      ZL2B9PJC      SEAGATE  SAS MDL      VIRTUAL POOL  dgB01      B     Archive  16.0TB   512e    7          OK
+1.52      ZL2B9CDP      SEAGATE  SAS MDL      VIRTUAL POOL  dgA01            Archive  16.0TB   512e    7          OK
+1.53      ZL2B9V15      SEAGATE  SAS MDL      VIRTUAL POOL  dgB01      B     Archive  16.0TB   512e    7          OK
+1.54      ZL2B9MJM      SEAGATE  SAS MDL      VIRTUAL POOL  dgA01            Archive  16.0TB   512e    7          OK
+1.55      ZL2B94S4      SEAGATE  SAS MDL      VIRTUAL POOL  dgB01      B     Archive  16.0TB   512e    7          OK
+1.56      ZL2B9WQN      SEAGATE  SAS MDL      AVAIL                                   Archive  16.0TB  512e       7       Unknown
+1.57      ZL2B6MHW      SEAGATE  SAS MDL      VIRTUAL POOL  dgB01      B     Archive  16.0TB   512e    7          OK
+1.58      ZL2B9MH0      SEAGATE  SAS MDL      VIRTUAL POOL  dgA01            Archive  16.0TB   512e    7          OK
+1.59      2120A34AF9SH  TOSHIBA  SAS MDL      VIRTUAL POOL  dgB01      B     Archive  16.0TB   512e    7          OK
+1.60      2120A34UF9SH  TOSHIBA  SAS MDL      VIRTUAL POOL  dgA01            Archive  16.0TB   512e    7          OK
+1.61      2120A2B3F9SH  TOSHIBA  SAS MDL      VIRTUAL POOL  dgB01      B     Archive  16.0TB   512e    7          OK
+1.62      ZL2C7ZL4      SEAGATE  SAS MDL      VIRTUAL POOL  dgA01            Archive  16.0TB   512e    7          OK
+1.63      ZL2B94VA      SEAGATE  SAS MDL      VIRTUAL POOL  dgB01      B     Archive  16.0TB   512e    7          OK
+1.64      ZL2B94TM      SEAGATE  SAS MDL      VIRTUAL POOL  dgA01            Archive  16.0TB   512e    7          OK
+1.65      ZL2B94R7      SEAGATE  SAS MDL      VIRTUAL POOL  dgB01      B     Archive  16.0TB   512e    7          OK
+2.0       31A0A0D9F9SH  TOSHIBA  SAS MDL      VIRTUAL POOL  dgA01            Archive  16.0TB   512e    7          OK
+2.1       2120A2DYF9SH  TOSHIBA  SAS MDL      VIRTUAL POOL  dgB01      B     Archive  16.0TB   512e    7          OK
+2.2       ZR70W288      SEAGATE  SAS MDL      VIRTUAL POOL  dgA01            Archive  16.0TB   512e    7          OK
+2.3       2110A2PQF9SH  TOSHIBA  SAS MDL      VIRTUAL POOL  dgB01      B     Archive  16.0TB   512e    7          OK
+2.4       2120A35GF9SH  TOSHIBA  SAS MDL      VIRTUAL POOL  dgA01            Archive  16.0TB   512e    7          OK
+2.5       2120A35ZF9SH  TOSHIBA  SAS MDL      VIRTUAL POOL  dgB01      B     Archive  16.0TB   512e    7          OK
+2.6       ZL2B94AH      SEAGATE  SAS MDL      VIRTUAL POOL  dgA01            Archive  16.0TB   512e    7          OK
+2.7       ZL2B9565      SEAGATE  SAS MDL      VIRTUAL POOL  dgB01      B     Archive  16.0TB   512e    7          OK
+2.8       ZL2B9PKL      SEAGATE  SAS MDL      VIRTUAL POOL  dgA01            Archive  16.0TB   512e    7          OK
+2.9       5EGG30ZZ      WDC      SAS MDL      VIRTUAL POOL  dgB01      B     Archive  16.0TB
+
+TABLE: PSU
+EnclId  PSUId  SerialNumber             PartNumber  Name          FirmwareVersion  Health
+0       0      CN03PD98SGW0021K009PA00  3PD98       PSU 0, Left   033D             OK
+0       1      CN03PD98SGW0021K009MA00  3PD98       PSU 1, Right  033D             OK
+1       0      CN06JN28FCG0011604NBA00  6JN28       PSU 0, Left   0306             OK
+1       1      CN06JN28FCG0011B00JKA00  6JN28       PSU 1, Right  0306             OK
+2       0      CN06JN28FCG0011B00JAA00  6JN28       PSU 0, Left   0306             OK
+2       1      CN06JN28FCG0011B00K7A00  6JN28       PSU 1, Right  0306             OK
+======================================================
+TABLE: SFP
+Present  Status  Vendor         PartNumber        Health
+Present  OK      DELL EMC       NKX77             OK
+Present  OK      OEM            SFP+10G-SR        OK
+Present  OK      FINISAR CORP.  FTLF8529P4BCV-QM  OK
+
+4) Errors:
+TABLE: Errors
+Severity  Component   CodeOrPhrase  Message                                                                                                                                                                                                                                 Source
+Critical  DiskGroup   quarantine    "The disk group is quarantined. - Look for events in the event log related to quarantine (172, 485, or 590) and follow the recommended actions for those events."                                                                       Dell_ME4012.zip/store_2025_11_18__10_05_18.logs:113299
+Critical  Controller  "fault"       "- If this fault is being reported by only one controller in a dual-controller system, swap the network-port Ethernet cables between the two controllers. This will show whether the problem is outside or inside the storage system."  Dell_ME4012.zip/store_2025_11_18__10_05_18.logs:481
+Critical  Controller  "fault"       "- If the problem is not outside of the storage system, replace the controller module with the faulty network port."                                                                                                                    Dell_ME4012.zip/store_2025_11_18__10_05_18.logs:482
+Critical  Other       "missing"     "Missing LUN Response: Illegal Request"                                                                                                                                                                                                 Dell_ME4012.zip/store_2025_11_18__10_05_18.logs:113980
