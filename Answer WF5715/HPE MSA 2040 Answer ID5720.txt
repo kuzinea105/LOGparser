@@ -1,0 +1,102 @@
+﻿1) Parser metadata:
+   - LLM: deepseek-r1:32b-qwen-distill-fp16
+   - Timestamp (MSK): 00:15:46 09-03-2026 (MSK)
+
+2) Hardware identification:
+Vendor: HPE
+Class: Storage
+Model: MSA 2040 SAN
+
+TABLE: Enclosures
+Enclosure ID  WWN               Vendor  Model        Midplane Type  Health
+------------  ----------------  ------  -----------  -------------  ------
+1             500C0FF02597883C  HP      SPS-CHASSIS  2U24-6Gv2      OK
+
+======================================================
+
+TABLE: Controllers
+Controller ID  Serial Number  Status
+-------------  -------------  -----------
+A              7CE505P061     Operational
+B              7CE530M017     Operational
+
+3) Component status:
+
+TABLE: Disks
+Position  SerialNumber  PartNumber  Vendor  Size      Online
+--------  ------------  ----------  ------  --------  ------
+1.1       0QVE5AEA      SSD SAS     HP      400.0GB   Online
+1.2       0QVGBNVA      SSD SAS     HP      400.0GB   Online
+1.3       0QVGBPKA      SSD SAS     HP      400.0GB   Online
+1.4       0QVGGJJA      SSD SAS     HP      400.0GB   Online
+1.5       05V0AXHK      SAS         HP      900.1GB   Online
+1.6       05V0EWTH      SAS         HP      900.1GB   Online
+1.7       05V0E39H      SAS         HP      900.1GB   Online
+1.8       05V0D0PK      SAS         HP      900.1GB   Online
+1.9       05V0BZ1K      SAS         HP      900.1GB   Online
+1.10      WFKAXP48      SAS         HPE     1200.2GB  Online
+1.11      05G0JEYH      SAS         HP      900.1GB   Online
+1.12      05GJ137B      SAS         HP      900.1GB   Online
+1.13      05GJ7BGB      SAS         HP      900.1GB   Online
+1.14      05V0AU0K      SAS         HP      900.1GB   Online
+1.15      05V09NLK      SAS         HP      900.1GB   Online
+1.16      05V0EWHH      SAS         HP      900.1GB   Online
+1.17      WFK4N4AG      SAS         HP      1200.2GB  Online
+1.18      WFK4MXHW      SAS         HP      1200.2GB  Online
+
+======================================================
+
+TABLE: PowerSupplies
+Enclosure  location     serial_number  part_number  Power Watt  health
+---------  -----------  -------------  -----------  ----------  ------
+1          PSU 0 Left   N/A            592267-002   OK          N/A
+1          PSU 1 Right  N/A            592267-002   OK          N/A
+
+======================================================
+
+TABLE: SFP
+location     serial_number  part_number       Model  health
+-----------  -------------  ----------------  -----  -----------
+hostport_A1  N/A            FTLF8528P3BCV-1H  FC     OK
+hostport_A2  N/A            FTLF8528P3BCV-1H  FC     OK
+hostport_A3  N/A            N/A               N/A    Not present
+hostport_A4  N/A            N/A               N/A    Not present
+hostport_B1  N/A            FTLF8528P3BCV-1H  FC     OK
+hostport_B2  N/A            N/A               N/A    Not present
+hostport_B3  N/A            N/A               N/A    Not present
+hostport_B4  N/A            N/A               N/A    Not present
+
+======================================================
+
+TABLE: BBU
+location  serial_number  part_number  capacity  charge  age  temperature  health
+--------  -------------  -----------  --------  ------  ---  -----------  ------
+Ctlr A    91%            OK           N/A       N/A     N/A  N/A          N/A
+Ctlr B    94%            OK           N/A       N/A     N/A  N/A          N/A
+
+======================================================
+
+TABLE: Fans
+location             part_number  Model  health
+-------------------  -----------  -----  ------
+Enclosure 1 - Left   OK           N/A    N/A
+Enclosure 1 - Right  OK           N/A    N/A
+
+4) Errors:
+
+TABLE: Errors
+Timestamp            Severity  Component   CodeOrPhrase  Message                                                                                                                                                                                                                                                                              Source                   KB
+-------------------  --------  ----------  ------------  ----------------------------------------  -----------------------  ---
+2025-10-01 06:11:22  Minor     DiskGroup   reconstruct   Vdisk reconstruction started. (vdisk: dgA01, SN: 00c0ff25a0390000b3f3c35d00000000) (disk: channel: 0, ID: 19, SN: Z401N47B0000C7439LN6, enclosure: 1, slot: 20)                                                                                                                      HPE MSA 2040.zip:326678  N/A
+2025-10-01 13:04:35  Minor     DiskGroup   Reconstruct   Reconstruction of a vdisk completed. (vdisk: dgA01, SN: 00c0ff25a0390000b3f3c35d00000000)                                                                                                                                                                                            HPE MSA 2040.zip:326681  N/A
+2025-10-20 16:54:38  Critical  Controller  FAILOVER      decoding brand SC_CONTROLLER_B|SC_OS_FAILOVER|SC_POST_UP(0x7f)|GLS210R04-01||SC_PFU_ON|SC_SINGLE_CONTROLLER|SC_OTHER_MISSING|other:SC_FS_DOWN|other:SC_FR_HEARTBEAT_LOST|this:SC_FS_ACTIVE_ACTIVE|this:SC_FR_NA|oui:OEM_OUI_SOURCE_MIDPLANE,2,0x000E7F                               HPE MSA 2040.zip:237191  N/A
+2025-10-20 16:52:23  Critical  Controller  WARNING       Received Prompt Request: WARNING: Default settings will be restored to the controllers and then the Management Controllers will restart. Changes to host interface settings may cause loss of data availability and require some reconfiguration to restore host access to volumes.  HPE MSA 2040.zip:9842    N/A
+2025-10-20 16:55:19  Minor     Other       hang          managedLogsEnable Changed oldValue 1 newValue 0                                                                                                                                                                                                                                      HPE MSA 2040.zip:27982   N/A
+2025-10-20 16:55:19  Minor     Other       hang          Brand not read or changed, not starting sfcb                                                                                                                                                                                                                                         HPE MSA 2040.zip:237377  N/A
+2025-10-20 16:55:39  Minor     Other       hang          Brand not read or changed, not starting snmp                                                                                                                                                                                                                                         HPE MSA 2040.zip:237380  N/A
+2025-10-20 16:55:03  Major     Other       reset         watcher_if: soft watch dog REGISTER succeeded: name= capiBroker, pid = 2210, timeout = 900, policy = 0, action = reset                                                                                                                                                               HPE MSA 2040.zip:213953  N/A
+2025-10-21 14:44:55  Major     Other       reset         watcher_if: soft watch dog REGISTER succeeded: name= capiBroker, pid = 2194, timeout = 900, policy = 0, action = reset                                                                                                                                                               HPE MSA 2040.zip:213964  N/A
+2025-10-21 14:47:52  Major     Other       reset         watcher_if: soft watch dog REGISTER succeeded: name= capiBroker, pid = 2197, timeout = 900, policy = 0, action = reset                                                                                                                                                               HPE MSA 2040.zip:213970  N/A
+2025-10-17 10:51:57  Warning   Other       WARNING       WARNING: cert is self signed.                                                                                                                                                                                                                                                        HPE MSA 2040.zip:214293  N/A
+2025-10-13 13:53:50  Warning   Other       WARNING       WARNING: cert is self signed.                                                                                                                                                                                                                                                        HPE MSA 2040.zip:236048  N/A
+2025-09-23 15:36:20  Warning   Other       WARNING       WARNING: cert is self signed.                                                                                                                                                                                                                                                        HPE MSA 2040.zip:236229  N/A

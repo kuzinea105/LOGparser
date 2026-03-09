@@ -1,0 +1,91 @@
+﻿1) Parser metadata:
+   - LLM: deepseek-r1:32b-qwen-distill-fp16
+   - Timestamp (MSK): 23:54:15 08-03-2026 (MSK)
+
+2) Hardware identification:
+Vendor: EMC
+Class: Storage
+Model: MD3800f
+
+TABLE: Enclosures
+N/A
+
+======================================================
+
+TABLE: Controllers
+N/A
+
+3) Component status:
+
+TABLE: Disks
+N/A
+
+======================================================
+
+TABLE: PowerSupplies
+Enclosure               location  serial_number  part_number  Power Watt  health
+----------------------  --------  -------------  -----------  ----------  ------
+Enclosure 0 PSU1 Right  Optimal   N/A            N/A          N/A         N/A
+Enclosure 0 PSU2 Right  Optimal   N/A            N/A          N/A         N/A
+
+======================================================
+
+TABLE: SFP
+location      serial_number  part_number  Model    health
+------------  -------------  -----------  -------  ------
+Z0D0A12ZFQZF  0HFPGK         N/A          Optimal  N/A
+Z0H0A05ZFQZF  0HFPGK         N/A          Optimal  N/A
+61Q0A0YLFQZF  0HFPGK         N/A          Optimal  N/A
+61Q0A0Z1FQZF  0HFPGK         N/A          Optimal  N/A
+Y170A03TFQZF  0HFPGK         N/A          Optimal  N/A
+W3Z0NGXB      0HFPGK         N/A          Optimal  N/A
+W3Z0NGWE      0HFPGK         N/A          Optimal  N/A
+W3Z0NGV8      0HFPGK         N/A          Optimal  N/A
+W3Z0NGPS      0HFPGK         N/A          Optimal  N/A
+W3Z0NGPC      0HFPGK         N/A          Optimal  N/A
+W3Z0NGNC      0HFPGK         N/A          Optimal  N/A
+W3Z0NGLP      0HFPGK         N/A          Optimal  N/A
+W3Z0NGL2      0HFPGK         N/A          Optimal  N/A
+W3Z0ME2P      0HFPGK         N/A          Optimal  N/A
+W3Z0NGGG      0HFPGK         N/A          Optimal  N/A
+W3Z0PZ19      0HFPGK         N/A          Optimal  N/A
+W3Z0PYHX      0HFPGK         N/A          Optimal  N/A
+W3Z0Q5AW      0HFPGK         N/A          Optimal  N/A
+W3Z0Q4M7      0HFPGK         N/A          Optimal  N/A
+08G4R0PA      0HFPGK         N/A          Optimal  N/A
+
+======================================================
+
+TABLE: BBU
+location   serial_number  part_number  capacity  charge  age  temperature  health
+---------  -------------  -----------  --------  ------  ---  -----------  ------
+Ctlr A     Optimal        N/A          N/A       N/A     N/A  N/A          N/A
+CTE0.BBU0  Optimal        N/A          N/A       N/A     N/A  N/A          N/A
+BBU A      Optimal        N/A          N/A       N/A     N/A  N/A          N/A
+
+======================================================
+
+TABLE: Fans
+location           part_number  Model    health
+-----------------  -----------  -------  ------
+Enclosure 0 Fan 1  Fan - PS     Optimal  N/A
+Enclosure 0 Fan 2  Fan - PS     Optimal  N/A
+
+4) Errors:
+
+TABLE: Errors
+Timestamp  Severity  Component  CodeOrPhrase  Message                                                                            Source                  KB
+---------  --------  ---------  ------------  ----------------------------------------  ----------------------  ---
+N/A        Critical  Other      Panic         m_PanicString :                                                                    Dell MD3820F.7z:250611  N/A
+N/A        Critical  Other      faults        <description>Recovery guru procedures for current persisting faults</description>  Dell MD3820F.7z:225005  N/A
+N/A        Critical  Other      Faulted       IocFaulted : 0                                                                     Dell MD3820F.7z:235305  N/A
+N/A        Critical  Other      Failed        FailedMirChan : 0                                                                  Dell MD3820F.7z:235306  N/A
+N/A        Critical  HostPort   faults        FactDefaults Supported: No                                                         Dell MD3820F.7z:240653  N/A
+N/A        Minor     Other      0x006e        WaitIoDone < 17 ms > DataStat Rd10 03 99999 00006 0x0e01 *0x006e                   Dell MD3820F.7z:238298  N/A
+N/A        Minor     HostPort   0x00000004    Channel 0x00000004 (Host)                                                          Dell MD3820F.7z:239025  N/A
+N/A        Minor     Other      0x00000004    ChipMask 0x00000004                                                                Dell MD3820F.7z:239897  N/A
+N/A        Minor     Other      0x8000        GEI_PARH0 = 0x80006a6d                                                             Dell MD3820F.7z:247304  N/A
+N/A        Minor     Other      0x8000        GEI_PARH0 = 0x8000696d                                                             Dell MD3820F.7z:247360  N/A
+N/A        Minor     Other      0x8000        GEI_PARH0 = 0x8000fc65                                                             Dell MD3820F.7z:265104  N/A
+N/A        Minor     Other      0x7b01        this Address: 0x7b01e28                                                            Dell MD3820F.7z:249636  N/A
+N/A        Minor     Other      reconstruct   Description: IAF suspended for reconstruction                                      Dell MD3820F.7z:120561  N/A

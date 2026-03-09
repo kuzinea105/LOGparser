@@ -1,0 +1,80 @@
+﻿1) Parser metadata:
+   - LLM: deepseek-r1:32b-qwen-distill-fp16
+   - Timestamp (MSK): 00:52:58 09-03-2026 (MSK)
+
+2) Hardware identification:
+Vendor: IBM
+Class: Storage
+Model: Storwize V3700
+
+TABLE: Enclosures
+enclosure_id  product_MTM  serial_number  FRU_part_number  FRU_identity
+------------  -----------  -------------  ---------------  ----------------------
+1             2072-24C     7861185        00Y2422          11S00Y2441YM13BG4AX060
+1             2072-24E     7857426        00Y2422          11S00Y2441YM13BG4A906N
+1             2072-24E     7857438        00Y2422          11S00Y2441YM13BG4A9082
+1             2072-24E     7857416        N/A              11S00Y2441YM13BG4A901V
+1             2072-24E     7857407        N/A              11S00Y2441YM13BG4AA003
+
+======================================================
+
+TABLE: Controllers
+controller_type_sas  supported_topologies  oem_key  capacity
+-------------------  --------------------  -------  -------------
+yes                  standard              ibm      1197851279360
+
+3) Component status:
+
+TABLE: Disks
+Position  SerialNumber  PartNumber  Vendor  Size  Online
+--------  ------------  ----------  ------  ----  ------
+4:12      N/A           N/A         IBM     69    Online
+4:13      N/A           N/A         IBM     70    Online
+4:14      N/A           N/A         IBM     57    Online
+4:15      N/A           N/A         IBM     71    Online
+4:16      N/A           N/A         IBM     66    Online
+4:17      N/A           N/A         IBM     52    Online
+4:18      N/A           N/A         IBM     72    Online
+4:19      N/A           N/A         IBM     50    Online
+4:20      N/A           N/A         IBM     53    Online
+4:21      N/A           N/A         IBM     60    Online
+4:22      N/A           N/A         IBM     55    Online
+4:23      N/A           N/A         IBM     73    Online
+4:24      N/A           N/A         IBM     61    Online
+5:1       N/A           N/A         IBM     84    Online
+5:2       N/A           N/A         IBM     80    Online
+5:3       N/A           N/A         IBM     76    Online
+5:4       N/A           N/A         IBM     74    Online
+5:5       N/A           N/A         IBM     82    Online
+5:6       N/A           N/A         IBM     75    Online
+5:7       N/A           N/A         IBM     77    Online
+5:8       N/A           N/A         IBM     83    Online
+
+======================================================
+
+TABLE: PowerSupplies
+N/A
+
+======================================================
+
+TABLE: SFP
+N/A
+
+======================================================
+
+TABLE: BBU
+location               serial_number           part_number  capacity  charge  age  temperature  health
+---------------------  ----------------------  -----------  --------  ------  ---  -----------  ------------------------------
+Enclosure 0 Battery 1  11S00Y4594YM12ZR1910EC  00Y4643      1014 mAh  100%    N/A  33.4C        CHARGE_SUFFICIENT_FOR_TWO_FHDS
+
+======================================================
+
+TABLE: Fans
+N/A
+
+4) Errors:
+
+TABLE: Errors
+Timestamp            Severity  Component  CodeOrPhrase           Message                            Source                   KB
+-------------------  --------  ---------  ---------------------  ---------------------------------  -----------------------  ---
+2025-04-14 02:26:00  Critical  HostPort   Authentication failed  CMMVC8045E Authentication failed.  IBM Storwize.tgz:905461  N/A

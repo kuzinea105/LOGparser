@@ -1,0 +1,56 @@
+﻿1) Parser metadata:
+   - LLM: deepseek-r1:32b-qwen-distill-fp16
+   - Timestamp (MSK): 00:09:47 09-03-2026 (MSK)
+
+2) Hardware identification:
+Vendor: EMC
+Class: Storage
+Model: VNX5600
+
+TABLE: Enclosures
+N/A
+
+======================================================
+
+TABLE: Controllers
+N/A
+
+3) Component status:
+
+TABLE: Disks
+N/A
+
+======================================================
+
+TABLE: PowerSupplies
+Enclosure          location  serial_number   part_number     Power Watt  health
+-----------------  --------  --------------  --------------  ----------  ------
+Bus 0 Enclosure 0  Power A   AC7I4165203632  071-000-036-04  Faulted     N/A
+Bus 0 Enclosure 0  Power B   N/A             071-000-036-04  Present     N/A
+Bus 1 Enclosure 0  Power A   N/A             071-000-036-04  Faulted     N/A
+Bus 1 Enclosure 0  Power B   N/A             071-000-036-04  Present     N/A
+
+======================================================
+
+TABLE: SFP
+N/A
+
+======================================================
+
+TABLE: BBU
+N/A
+
+======================================================
+
+TABLE: Fans
+N/A
+
+4) Errors:
+
+TABLE: Errors
+Timestamp            Severity  Component  CodeOrPhrase        Message                                                     Source             KB
+-------------------  --------  ---------  ------------------  ----------------------------------------  -----------------  ---------  ---  -----------------
+11/06/2025 16:39:51  Critical  Other      FAILURE             OR action for 'rockies_PeerSP_mem_drt' is CONTINUE/FAILURE  EMC VNX.zip:93844
+11/06/2025 16:39:51  Critical  Other      Failure             rockies_rgcheck state Failure                               EMC VNX.zip:93884
+10/30/2024 01:58:49  Critical  PSU        Power Supply Fault  Follow knowledgebase article                                                   emc261645  :.  EMC VNX.zip:93300
+10/30/2024 01:58:50  Critical  PSU        missing             File or information missing. Follow knowledgebase article                      emc261645  :.  EMC VNX.zip:93304

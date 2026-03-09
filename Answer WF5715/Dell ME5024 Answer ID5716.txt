@@ -1,0 +1,82 @@
+﻿1) Parser metadata:
+   - LLM: deepseek-r1:32b-qwen-distill-fp16
+   - Timestamp (MSK): 23:54:26 08-03-2026 (MSK)
+
+2) Hardware identification:
+Vendor: Dell EMC
+Class: Storage
+Model: ME5024
+
+TABLE: Enclosures
+N/A
+
+======================================================
+
+TABLE: Controllers
+N/A
+
+3) Component status:
+
+TABLE: Disks
+N/A
+
+======================================================
+
+TABLE: PowerSupplies
+Enclosure  location     serial_number            part_number  Power Watt  health
+---------  -----------  -----------------------  -----------  ----------  ------
+0          PSU 0 Left   CN0DYJW5SGW00365000QA00  DYJW5        OK          N/A
+0          PSU 1 Right  CN0DYJW5SGW00365000MA00  DYJW5        OK          N/A
+
+======================================================
+
+TABLE: SFP
+location     serial_number  part_number       Model  health
+-----------  -------------  ----------------  -----  ------
+hostport_A3  N/A            LTF8508-BE+-DEN1  N/A    N/A
+
+======================================================
+
+TABLE: BBU
+N/A
+
+======================================================
+
+TABLE: Fans
+location                    part_number     Model  health
+--------------------------  --------------  -----  ------
+Enclosure 0, PSU 0 - Left   PSU module fan  OK     N/A
+Enclosure 0, PSU 0 - Left   PSU module fan  OK     N/A
+Enclosure 0, PSU 1 - Right  PSU module fan  OK     N/A
+Enclosure 0, PSU 1 - Right  PSU module fan  OK     N/A
+
+4) Errors:
+
+TABLE: Errors
+Timestamp            Severity  Component   CodeOrPhrase       Message                                                                                                                                                                                                                                                                                                                                                                                                                                              Source                   KB
+-------------------  --------  ----------  -----------------  ----------------------------------------  -----------------------  -----------  ---  ----------------------------------------  -----------------------
+2025-06-03 13:53:36  Critical  Other       dequarantine       INF) 2025-06-03 13:53:36.456 (80) bool printHTMLHelpToStream(services::user::Session*, utility::PutStream&, const char*, bool)[814] brand [dellemc] command [dequarantine] shortDesc [1]                                                                                                                                                                                                                                                             Dell ME5024.zip:2263708  N/A
+2025-06-03 13:53:36  Critical  Other       dequarantine       INF) 2025-06-03 13:53:36.457 (80) void convertCommandToFilename(const char*, utility::BufferStream&, const char*)[57] command [dequarantine] brand [dellemc]                                                                                                                                                                                                                                                                                         Dell ME5024.zip:2263709  N/A
+2025-06-02 15:00:33  Major     Disk        command timeout    [hit] 2025-06-02 15:00:33.453: [1] spawner(1339): command: readslot, command timeout for spawner: 10                                                                                                                                                                                                                                                                                                                                                 Dell ME5024.zip:47912    N/A
+2025-06-02 15:00:39  Critical  Other       command timeout    [hit] 2025-06-02 15:00:39.071: [2] spawner(1448): command: xmlcntrl /app/default/cfg/users/PIKADM.xml "PIKADM" "sha256", command timeout for spawner: 1800                                                                                                                                                                                                                                                                                           Dell ME5024.zip:47915    N/A
+2025-06-02 15:00:39  Critical  Other       command timeout    [hit] 2025-06-02 15:00:39.101: [3] spawner(1450): command: xmlcntrl /app/default/cfg/users/admin.xml "admin" "sha256", command timeout for spawner: 1800                                                                                                                                                                                                                                                                                             Dell ME5024.zip:47919    N/A
+2025-06-02 15:00:39  Critical  Other       command timeout    [hit] 2025-06-02 15:00:39.189: [4] spawner(1452): command: xmlcntrl /app/default/cfg/users/administrator.xml "administrator" "sha256", command timeout for spawner: 1800                                                                                                                                                                                                                                                                             Dell ME5024.zip:47922    N/A
+2025-06-02 15:00:55  Critical  Controller  Controller failed  [hit] ERR) 2025-06-02 15:00:55.011 (18) CapiRequestGetController failed. [3001:CAPI_ERROR_CONTROLLER_SHUTDOWN]                                                                                                                                                                                                                                                                                                                                       Dell ME5024.zip:2216119  N/A
+2025-06-02 15:01:11  Critical  Controller  Controller failed  [hit] ERR) 2025-06-02 15:01:11.055 (18) CapiRequestGetController failed. [3001:CAPI_ERROR_CONTROLLER_SHUTDOWN]                                                                                                                                                                                                                                                                                                                                       Dell ME5024.zip:2216142  N/A
+2025-06-02 15:01:22  Critical  Controller  Controller failed  [hit] ERR) 2025-06-02 15:01:22.411 (18) CapiRequestGetController failed. [3001:CAPI_ERROR_CONTROLLER_SHUTDOWN]                                                                                                                                                                                                                                                                                                                                       Dell ME5024.zip:2216157  N/A
+2025-06-03 14:12:35  Minor     Other       TimedOut           [hit] 3738 2025-06-03 14:12:35,482 CP Server Thread-6 DEBUG DellESE.database.esedb LN: 30 Save connectivity result: status=TimedOut, HTTP code=None, time=1748959955, url=https://esrs3-core.emc.com                                                                                                                                                                                                                                                 Dell ME5024.zip:22574    N/A
+2025-06-03 14:12:56  Minor     Other       TimedOut           [hit] 3738 2025-06-03 14:12:56,637 CP Server Thread-7 DEBUG DellESE.database.esedb LN: 30 Save connectivity result: status=TimedOut, HTTP code=None, time=1748959976, url=https://esrs3-coredr.emc.com                                                                                                                                                                                                                                               Dell ME5024.zip:22586    N/A
+2025-06-03 14:13:20  Minor     Other       TimedOut           [hit] 3738 2025-06-03 14:13:20,506 CP Server Thread-4 DEBUG DellESE.database.esedb LN: 30 Save connectivity result: status=TimedOut, HTTP code=None, time=1748960000, url=https://esrs3-core.emc.com                                                                                                                                                                                                                                                 Dell ME5024.zip:22606    N/A
+2025-06-02 15:05:42  Warning   Other       WARNING            [hit] 2025-06-02 15:05:42: WARNING: cert expired.                                                                                                                                                                                                                                                                                                                                                                                                    Dell ME5024.zip:48782    N/A
+2025-06-03 02:01:03  Major     HostPort    WARNING            [hit] 3738 2025-06-03 02:01:03,019 App Poller WARNING SRSWrapper LN: 830 Exception when calling get remote support ip addresses. Message HTTPSConnectionPool(host='esrs3-core.emc.com', port=443): Max retries exceeded with url: /esrs/v2/devices/remoteAccess/powervault/4Q6HSY3 (Caused by ConnectTimeoutError(<urllib3.connection.HTTPSConnection object at 0xa7a687c0>, 'Connection to esrs3-core.emc.com timed out. (connect timeout=35.0)'))  Dell ME5024.zip:62107    N/A
+2025-06-03 12:00:01  Major     Other       rebuild            [hit] 2025-06-03 12:00:01.173                                                                                                                                                                                                                                                                                                                                                                                                                        ENC_MGT                  env_control  04  Invoke GEM SDR rebuild for BMC following synch  Dell ME5024.zip:1965093
+2025-06-03 12:00:01  Major     Other       rebuild            [hit] 2025-06-03 12:00:01.173                                                                                                                                                                                                                                                                                                                                                                                                                        ENC_MGT                  env_control  04  Invoke GEM SDR rebuild for BMC following synch  Dell ME5024.zip:1965468
+2025-06-03 14:41:17  Critical  Other       warn               [hit] WAR) 2025-06-03 14:41:17.115 (none) daemon.warn pure-ftpd[21655]: (?@172.31.16.11) [WARNING] Authentication failed for user [croot]                                                                                                                                                                                                                                                                                                            Dell ME5024.zip:157220   N/A
+2025-06-02 15:03:00  Critical  Other       warn               [hit] WAR) 2025-06-02 15:03:00.364 (none) user.warn kernel: [ 9.319615] STX - reset ETH0_MAC_RESET, assert - value: 0x303                                                                                                                                                                                                                                                                                                                            Dell ME5024.zip:1216177  N/A
+2025-06-02 15:03:00  Critical  Other       warn               [ctx+] WAR) 2025-06-02 15:03:00.364 (none) user.warn kernel: [ 9.325382] STX - reset ETH0_MAC_RESET, assert done - value: 0x203                                                                                                                                                                                                                                                                                                                      Dell ME5024.zip:1216178  N/A
+2025-05-29 17:06:00  Warning   Disk        alarm              [hit] DBG) 2025-05-29 17:06:00.329 (none) user.debug kernel: [ 2.658202] bus: 'platform': add driver alarmtimer                                                                                                                                                                                                                                                                                                                                      Dell ME5024.zip:1242150  N/A
+2025-05-29 17:06:00  Warning   Disk        alarm              [hit] DBG) 2025-05-29 17:06:00.329 (none) user.debug kernel: [ 2.658475] bus: 'platform': driver_probe_device: matched device alarmtimer with driver alarmtimer                                                                                                                                                                                                                                                                                      Dell ME5024.zip:1242154  N/A
+2025-05-29 17:06:00  Warning   Disk        alarm              [ctx+] DBG) 2025-05-29 17:06:00.329 (none) user.debug kernel: [ 2.658494] bus: 'platform': really_probe: probing driver alarmtimer with device alarmtimer                                                                                                                                                                                                                                                                                            Dell ME5024.zip:1242155  N/A
+2025-05-29 17:06:00  Critical  Other       alarm              [hit] DBG) 2025-05-29 17:06:00.329 (none) user.debug kernel: [ 2.658560] alarmtimer alarmtimer: no default pinctrl state                                                                                                                                                                                                                                                                                                                             Dell ME5024.zip:1242156  N/A
+2025-05-30 08:23:00  Critical  Other       alarm              [hit] DBG) 2025-05-30 08:23:00.326 (none) user.debug kernel: [ 2.659129] alarmtimer alarmtimer: no default pinctrl state                                                                                                                                                                                                                                                                                                                             Dell ME5024.zip:1243637  N/A
+2025-05-29 17:06:00  Warning   Other       alarm              [ctx+] DBG) 2025-05-29 17:06:00.329 (none) user.debug kernel: [ 2.658321] Registering platform device 'alarmtimer'. Parent at platform                                                                                                                                                                                                                                                                                                               Dell ME5024.zip:1242151  N/A

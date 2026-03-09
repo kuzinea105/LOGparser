@@ -1,0 +1,101 @@
+﻿1) Parser metadata:
+   - LLM: deepseek-r1:32b-qwen-distill-fp16
+   - Timestamp (MSK): 23:54:26 08-03-2026 (MSK)
+
+2) Hardware identification:
+Vendor: Dell EMC
+Class: Storage
+Model: ME4012
+
+TABLE: Enclosures
+N/A
+
+======================================================
+
+TABLE: Controllers
+N/A
+
+3) Component status:
+
+TABLE: Disks
+N/A
+
+======================================================
+
+TABLE: PowerSupplies
+Enclosure  location     serial_number            part_number  Power Watt  health
+---------  -----------  -----------------------  -----------  ----------  ------
+0          PSU 0 Left   CN03PD98SGW0021K009PA00  3PD98        OK          N/A
+0          PSU 1 Right  CN03PD98SGW0021K009MA00  3PD98        OK          N/A
+1          PSU 0 Left   CN06JN28FCG0011604NBA00  6JN28        OK          N/A
+1          PSU 1 Right  CN06JN28FCG0011B00JKA00  6JN28        OK          N/A
+2          PSU 0 Left   CN06JN28FCG0011B00JAA00  6JN28        OK          N/A
+2          PSU 1 Right  CN06JN28FCG0011B00K7A00  6JN28        OK          N/A
+
+======================================================
+
+TABLE: SFP
+location     serial_number     part_number       Model  health
+-----------  ----------------  ----------------  -----  ------
+hostport_A0  NKX77             NKX77             OK     N/A
+hostport_A1  NKX77             NKX77             OK     N/A
+hostport_A2  SFP+10G-SR        SFP+10G-SR        OK     N/A
+hostport_A3  SFP+10G-SR        SFP+10G-SR        OK     N/A
+hostport_B0  FTLF8529P4BCV-QM  FTLF8529P4BCV-QM  OK     N/A
+hostport_B1  NKX77             NKX77             OK     N/A
+hostport_B2  SFP+10G-SR        SFP+10G-SR        OK     N/A
+
+======================================================
+
+TABLE: BBU
+location  serial_number  part_number  capacity  charge  age  temperature  health
+--------  -------------  -----------  --------  ------  ---  -----------  ------
+Ctlr B    29 C           N/A          OK        N/A     N/A  N/A          N/A
+Ctlr A    30 C           N/A          OK        N/A     N/A  N/A          N/A
+Ctlr B    N/A            98%          OK        N/A     N/A  N/A          N/A
+Ctlr A    N/A            98%          OK        N/A     N/A  N/A          N/A
+
+======================================================
+
+TABLE: Fans
+location                    part_number  Model  health
+--------------------------  -----------  -----  ------
+Enclosure 0, PSU 0 - Left   5220         OK     N/A
+Enclosure 0, PSU 0 - Left   5280         OK     N/A
+Enclosure 0, PSU 1 - Right  5220         OK     N/A
+Enclosure 0, PSU 1 - Right  5280         OK     N/A
+Enclosure 1, Fan Module 0   7440         OK     N/A
+Enclosure 1, Fan Module 0   7440         OK     N/A
+Enclosure 1, Fan Module 1   7440         OK     N/A
+Enclosure 1, Fan Module 1   7440         OK     N/A
+Enclosure 1, Fan Module 2   7440         OK     N/A
+Enclosure 1, Fan Module 2   7440         OK     N/A
+Enclosure 1, Fan Module 3   7440         OK     N/A
+Enclosure 1, Fan Module 3   7440         OK     N/A
+Enclosure 1, Fan Module 4   7440         OK     N/A
+Enclosure 1, Fan Module 4   7440         OK     N/A
+Enclosure 2, Fan Module 0   7500         OK     N/A
+Enclosure 2, Fan Module 0   7440         OK     N/A
+Enclosure 2, Fan Module 1   7440         OK     N/A
+Enclosure 2, Fan Module 1   7440         OK     N/A
+Enclosure 2, Fan Module 2   7440         OK     N/A
+Enclosure 2, Fan Module 2   7440         OK     N/A
+Enclosure 2, Fan Module 3   7440         OK     N/A
+Enclosure 2, Fan Module 3   7440         OK     N/A
+Enclosure 2, Fan Module 4   7440         OK     N/A
+Enclosure 2, Fan Module 4   7440         OK     N/A
+
+4) Errors:
+
+TABLE: Errors
+Timestamp            Severity  Component  CodeOrPhrase         Message                                                                                                                                                                                                                Source                  KB
+-------------------  --------  ---------  -------------------  ----------------------------------------  ----------------------  ---
+2025-11-14 15:33:23  Critical  DiskGroup  missing              A disk that was part of a disk group is missing and the disk group is quarantined. (disk group: dgA01, SN: 00c0ff65d5e00000b64a356400000000) (disk: channel: 4294967295, ID: 0, SN: ZL2B9WQN, enclosure: 1, slot: 56)  Dell ME4012.zip:402483  N/A
+2025-11-15 10:10:54  Critical  Other      offline              The metadata volume for a storage pool went offline. Volume mappings and persistent reservations are inaccessible or lost. (storage pool: A, SN: 00c0ff65d5e00000be4a356401000000)                                     Dell ME4012.zip:402930  N/A
+2025-11-14 15:46:09  Critical  Other      failed               CloudIQ performance data upload failed.                                                                                                                                                                                Dell ME4012.zip:402501  N/A
+2025-11-14 15:33:25  Critical  DiskGroup  WARNING              Vdisk quick rebuild failed. Command failed. (vdisk: dgA01, SN: 00c0ff65d5e00000b64a356400000000) (error code: 1)                                                                                                       Dell ME4012.zip:402485  N/A
+2025-11-14 15:33:25  Warning   DiskGroup  WARNING              Unwritable write-back cache data exists for a volume. (vdisk: dgA01, volume: ESX_D3_UIB_kata-cn-d01p_Disk1, SN: 00c0ff65d5e00000854a216601000000) It comprises 1% of cache space.                                      Dell ME4012.zip:402486  N/A
+2025-11-14 14:45:13  Major     DiskGroup  disk group degraded  disk group degraded zone standard full reconstruction started. (disk-group: dgA01, SN: 00c0ff65d5e00000b64a356400000000)                                                                                               Dell ME4012.zip:402402  N/A
+2025-11-08 00:01:05  Major     DiskGroup  disk group degraded  disk group degraded zone standard full reconstruction started. (disk-group: dgA01, SN: 00c0ff65d5e00000b64a356400000000)                                                                                               Dell ME4012.zip:402121  N/A
+2025-10-31 18:05:38  Major     DiskGroup  disk group degraded  disk group degraded zone standard full reconstruction started. (disk-group: dgA01, SN: 00c0ff65d5e00000b64a356400000000)                                                                                               Dell ME4012.zip:402090  N/A
+2025-09-03 17:41:48  Major     DiskGroup  disk group degraded  disk group degraded zone standard full reconstruction started. (disk-group: dgA01, SN: 00c0ff65d5e00000b64a356400000000)                                                                                               Dell ME4012.zip:401638  N/A

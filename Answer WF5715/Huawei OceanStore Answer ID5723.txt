@@ -1,0 +1,184 @@
+﻿1) Parser metadata:
+   - LLM: deepseek-r1:32b-qwen-distill-fp16
+   - Timestamp (MSK): 00:31:18 09-03-2026 (MSK)
+
+2) Hardware identification:
+Vendor: Huawei
+Class: Storage
+Model: OceanStor 2600 V3
+
+TABLE: Enclosures
+N/A
+
+======================================================
+
+TABLE: Controllers
+Controller ID  WWN                               Status
+-------------  --------------------------------  ------
+0A             65c546d100257a17b17d818900000001  Online
+
+3) Component status:
+
+TABLE: Disks
+Position  SerialNumber  PartNumber  Vendor  Size  Online
+--------  ------------  ----------  ------  ----  ------
+0.11      N/A           N/A         Huawei  N/A   Online
+0.12      N/A           N/A         Huawei  N/A   Online
+0.13      N/A           N/A         Huawei  N/A   Online
+0.14      N/A           N/A         Huawei  N/A   Online
+0.15      N/A           N/A         Huawei  N/A   Online
+0.16      N/A           N/A         Huawei  N/A   Online
+0.17      N/A           N/A         Huawei  N/A   Online
+0.18      N/A           N/A         Huawei  N/A   Online
+0.19      N/A           N/A         Huawei  N/A   Online
+0.20      N/A           N/A         Huawei  N/A   Online
+0.21      N/A           N/A         Huawei  N/A   Online
+0.22      N/A           N/A         Huawei  N/A   Online
+0.23      N/A           N/A         Huawei  N/A   Online
+0.24      N/A           N/A         Huawei  N/A   Online
+0.25      N/A           N/A         Huawei  N/A   Online
+0.26      N/A           N/A         Huawei  N/A   Online
+0.27      N/A           N/A         Huawei  N/A   Online
+0.28      N/A           N/A         Huawei  N/A   Online
+0.29      N/A           N/A         Huawei  N/A   Online
+0.30      N/A           N/A         Huawei  N/A   Online
+0.31      N/A           N/A         Huawei  N/A   Online
+0.32      N/A           N/A         Huawei  N/A   Online
+0.33      N/A           N/A         Huawei  N/A   Online
+0.34      N/A           N/A         Huawei  N/A   Online
+0.35      N/A           N/A         Huawei  N/A   Online
+0.36      N/A           N/A         Huawei  N/A   Online
+0.37      N/A           N/A         Huawei  N/A   Online
+0.38      N/A           N/A         Huawei  N/A   Online
+0.39      N/A           N/A         Huawei  N/A   Online
+0.40      N/A           N/A         Huawei  N/A   Online
+0.41      N/A           N/A         Huawei  N/A   Online
+0.42      N/A           N/A         Huawei  N/A   Online
+0.43      N/A           N/A         Huawei  N/A   Online
+0.44      N/A           N/A         Huawei  N/A   Online
+0.45      N/A           N/A         Huawei  N/A   Online
+0.46      N/A           N/A         Huawei  N/A   Online
+0.47      N/A           N/A         Huawei  N/A   Online
+0.48      N/A           N/A         Huawei  N/A   Online
+0.49      N/A           N/A         Huawei  N/A   Online
+0.50      N/A           N/A         Huawei  N/A   Online
+0.51      N/A           N/A         Huawei  N/A   Online
+0.52      N/A           N/A         Huawei  N/A   Online
+0.53      N/A           N/A         Huawei  N/A   Online
+0.54      N/A           N/A         Huawei  N/A   Online
+0.55      N/A           N/A         Huawei  N/A   Online
+0.56      N/A           N/A         Huawei  N/A   Online
+0.57      N/A           N/A         Huawei  N/A   Online
+0.58      N/A           N/A         Huawei  N/A   Online
+0.59      N/A           N/A         Huawei  N/A   Online
+0.60      N/A           N/A         Huawei  N/A   Online
+0.61      N/A           N/A         Huawei  N/A   Online
+0.62      N/A           N/A         Huawei  N/A   Online
+0.63      N/A           N/A         Huawei  N/A   Online
+0.64      N/A           N/A         Huawei  N/A   Online
+0.65      N/A           N/A         Huawei  N/A   Online
+0.66      N/A           N/A         Huawei  N/A   Online
+0.67      N/A           N/A         Huawei  N/A   Online
+0.68      N/A           N/A         Huawei  N/A   Online
+0.69      N/A           N/A         Huawei  N/A   Online
+0.70      N/A           N/A         Huawei  N/A   Online
+0.71      N/A           N/A         Huawei  N/A   Online
+0.72      N/A           N/A         Huawei  N/A   Online
+0.73      N/A           N/A         Huawei  N/A   Online
+0.74      N/A           N/A         Huawei  N/A   Online
+0.75      N/A           N/A         Huawei  N/A   Online
+0.76      N/A           N/A         Huawei  N/A   Online
+0.77      N/A           N/A         Huawei  N/A   Online
+0.78      N/A           N/A         Huawei  N/A   Online
+0.79      N/A           N/A         Huawei  N/A   Online
+0.80      N/A           N/A         Huawei  N/A   Online
+0.81      N/A           N/A         Huawei  N/A   Online
+0.82      N/A           N/A         Huawei  N/A   Online
+0.83      N/A           N/A         Huawei  N/A   Online
+0.84      N/A           N/A         Huawei  N/A   Online
+0.85      N/A           N/A         Huawei  N/A   Online
+
+======================================================
+
+TABLE: PowerSupplies
+Enclosure  location  serial_number         part_number  Power Watt  health
+---------  --------  --------------------  -----------  ----------  ------
+DAE020     PSU 1     2102311DEPHVK7007432  02311DEP     N/A         Fault
+DAE021     PSU 0     2102311DEPHVL4005856  02311DEP     N/A         Fault
+DAE011     PSU 1     2102311DEPHVHB010446  02311DEP     N/A         Fault
+CTE0       PSU 1     2102311DEPHVHB010779  02311DEP     N/A         Fault
+
+======================================================
+
+TABLE: SFP
+N/A
+
+======================================================
+
+TABLE: BBU
+location  serial_number  part_number  capacity  charge  age  temperature  health
+--------  -------------  -----------  --------  ------  ---  -----------  ------
+CTE0.A.0  N/A            N/A          N/A       N/A     N/A  N/A          N/A
+CTE0.B.0  N/A            N/A          N/A       N/A     N/A  N/A          N/A
+
+======================================================
+
+TABLE: Fans
+location     part_number  Model  health
+-----------  -----------  -----  ------
+CTE0.PSU0    N/A          N/A    N/A
+CTE0.PSU1    N/A          N/A    N/A
+DAE021.FAN0  N/A          N/A    N/A
+DAE011.FAN0  N/A          N/A    N/A
+DAE021.FAN1  N/A          N/A    N/A
+DAE011.FAN1  N/A          N/A    N/A
+DAE021.PSU0  N/A          N/A    N/A
+DAE011.PSU0  N/A          N/A    N/A
+DAE021.PSU1  N/A          N/A    N/A
+DAE011.PSU1  N/A          N/A    N/A
+DAE022.FAN0  N/A          N/A    N/A
+DAE022.FAN1  N/A          N/A    N/A
+DAE022.PSU0  N/A          N/A    N/A
+DAE010.FAN0  N/A          N/A    N/A
+DAE010.FAN1  N/A          N/A    N/A
+DAE010.PSU0  N/A          N/A    N/A
+DAE010.PSU1  N/A          N/A    N/A
+DAE020.FAN0  N/A          N/A    N/A
+DAE020.FAN1  N/A          N/A    N/A
+DAE020.PSU0  N/A          N/A    N/A
+DAE020.PSU1  N/A          N/A    N/A
+DAE022.PSU1  N/A          N/A    N/A
+CTE0.PSU0    N/A          N/A    N/A
+CTE0.PSU1    N/A          N/A    N/A
+DAE011.FAN0  N/A          N/A    N/A
+DAE011.FAN1  N/A          N/A    N/A
+DAE020.FAN0  N/A          N/A    N/A
+DAE020.FAN1  N/A          N/A    N/A
+DAE020.PSU0  N/A          N/A    N/A
+DAE020.PSU1  N/A          N/A    N/A
+DAE010.FAN0  N/A          N/A    N/A
+DAE010.FAN1  N/A          N/A    N/A
+DAE010.PSU0  N/A          N/A    N/A
+DAE010.PSU1  N/A          N/A    N/A
+DAE022.FAN0  N/A          N/A    N/A
+DAE022.FAN1  N/A          N/A    N/A
+DAE022.PSU0  N/A          N/A    N/A
+DAE021.FAN0  N/A          N/A    N/A
+DAE021.FAN1  N/A          N/A    N/A
+DAE021.PSU0  N/A          N/A    N/A
+DAE021.PSU1  N/A          N/A    N/A
+DAE022.PSU1  N/A          N/A    N/A
+
+4) Errors:
+
+TABLE: Errors
+Timestamp            Severity  Component  CodeOrPhrase  Message                                                                                                                               Source                       KB
+-------------------  --------  ---------  ------------  ----------------------------------------  ---------------------------  ---
+2025-07-30 14:16:17  Critical  Other      failed        admin:10.24.0.13 failed to delete the file system quota(quota tree id 0@13, quotatype Directory Quota).The error code is 0x41403d17.  Huawei OceanStore.zip:13925
+2025-07-30 14:15:36  Critical  Other      failed        admin:10.24.0.13 failed to delete the file system quota tree(fsid 0, quota tree id 0@13).The error code is 0x40404a0c.                Huawei OceanStore.zip:13934
+2025-07-30 13:17:52  Critical  Other      failed        admin:10.24.0.13 failed to test NTP server (server address 10.11.6.100). Error code: 0x4000ca16.                                      Huawei OceanStore.zip:13994
+2025-06-05 17:34:23  Critical  HostPort   Critical      The (HyperMetro arbitration certificate) has expired on (expiration time 2025-06-05), and a new one must be imported and activated.   Huawei OceanStore.zip:12992
+2025-03-11 17:53:13  Minor     Disk       0x2000        admin:10.21.3.60 succeeded in changing NL-SAS disk capacity 702.82TB of the storage pool (ID 0, pool name StoragePool001).            Huawei OceanStore.zip:16244
+2025-03-11 17:49:59  Minor     Disk       0x2000        admin:10.21.3.60 succeeded in changing NL-SAS disk capacity 684.53TB of the storage pool (ID 0, pool name StoragePool001).            Huawei OceanStore.zip:16262
+2025-03-11 16:50:01  Warning   Other      reset         poweron reset                                                                                                                         Huawei OceanStore.zip:2123
+2025-03-11 16:49:59  Warning   Other      reset         poweron reset                                                                                                                         Huawei OceanStore.zip:2122

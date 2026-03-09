@@ -1,0 +1,108 @@
+﻿1) Parser metadata:
+   - LLM: deepseek-r1:32b-qwen-distill-fp16
+   - Timestamp (MSK): 00:28:54 09-03-2026 (MSK)
+
+2) Hardware identification:
+Vendor: IBM
+Class: Storage
+Model: 3PAR 8200
+
+TABLE: Enclosures
+Name   Manufacturer  Part Number  Serial Number   Model Name         Assembly Rev
+-----  ------------  -----------  --------------  -----------------  ------------
+cage0  XYRATEX       QR490-63007  EEAUBA2TF6735B  HP 12GB MLK 2U A2  4082
+cage1  XYRATEX       QR491-63005  EWASNA1TF63BSS  HPE 12GB 4U A1     409b
+
+======================================================
+
+TABLE: Controllers
+Brand   Model     Firmware     Type
+------  --------  -----------  ----
+LSI     9300-2P   10.10.03.00  SAS
+EMULEX  LPE16002  11.1.220.10  FC
+
+3) Component status:
+
+TABLE: Disks
+Position  SerialNumber  PartNumber        Vendor  Size     Online
+--------  ------------  ----------------  ------  -------  ------
+0:0:0     A01B7641      DDYE1920S5xnNMRI  IBM     1787 GB  Online
+0:1:0     A01B768F      DDYE1920S5xnNMRI  IBM     1787 GB  Online
+0:2:0     A01B767C      DDYE1920S5xnNMRI  IBM     1787 GB  Online
+0:3:0     A01C35C0      DDYE1920S5xnNMRI  IBM     1787 GB  Online
+0:4:0     A01B8C57      DDYE1920S5xnNMRI  IBM     1787 GB  Online
+0:5:0     A01B76D7      DDYE1920S5xnNMRI  IBM     1787 GB  Online
+0:6:0     A01B7646      DDYE1920S5xnNMRI  IBM     1787 GB  Online
+0:7:0     A01B7670      DDYE1920S5xnNMRI  IBM     1787 GB  Online
+0:8:0     A01B75CD      DDYE1920S5xnNMRI  IBM     1787 GB  Online
+0:9:0     A01B761F      DDYE1920S5xnNMRI  IBM     1787 GB  Online
+0:10:0    A01B7673      DDYE1920S5xnNMRI  IBM     1787 GB  Online
+0:11:0    A01C3BD9      DDYE1920S5xnNMRI  IBM     1787 GB  Online
+0:12:0    A01B762C      DDYE1920S5xnNMRI  IBM     1787 GB  Online
+0:13:0    A01B86A3      DDYE1920S5xnNMRI  IBM     1787 GB  Online
+0:14:0    A01B7696      DDYE1920S5xnNMRI  IBM     1787 GB  Online
+0:15:0    A01B75CE      DDYE1920S5xnNMRI  IBM     1787 GB  Online
+0:16:0    A01B7683      DDYE1920S5xnNMRI  IBM     1787 GB  Online
+2:5:0     Z4H07DLD      SMKR2000S5xeN7.2  IBM     1805 GB  Online
+0:18:0    A01B75B9      DDYE1920S5xnNMRI  IBM     1787 GB  Online
+0:19:0    A01B7629      DDYE1920S5xnNMRI  IBM     1787 GB  Online
+
+======================================================
+
+TABLE: PowerSupplies
+Enclosure  location          serial_number     part_number   Power Watt  health
+---------  ----------------  ----------------  ------------  ----------  -----------------------
+0          "Power Supply 0"  "5DNSFA343611ND"  "726237-001"  764         "Assy PCM 764W GOLD A3"
+0          "Power Supply 1"  "5DNSFA343611UO"  "726237-001"  764         "Assy PCM 764W GOLD A3"
+1          "Power Supply 1"  "5EBMRA2TF6500C"  "753322-001"  580         "Assy GOLD PCM 580W A2"
+1          "Power Supply 2"  "5EBMRA2TF650EM"  "753322-001"  580         "Assy GOLD PCM 580W A2"
+2          "Power Supply 1"  "5EBMRA2TF6608Z"  "753322-001"  580         "Assy GOLD PCM 580W A2"
+2          "Power Supply 2"  "5EBMRA2TF650C8"  "753322-001"  580         "Assy GOLD PCM 580W A2"
+
+======================================================
+
+TABLE: SFP
+location               serial_number     part_number   Model         health
+---------------------  ----------------  ------------  ------------  ------
+"Cage 0 FCAL 0 SFP 0"  "APF17080020W9H"  "691970-002"  "691970-002"  N/A
+"Cage 0 FCAL 1 SFP 0"  "APF17060028U24"  "691970-002"  "691970-002"  N/A
+"Cage 1 FCAL 0 SFP 0"  "APF17080020W9H"  "691970-002"  "691970-002"  N/A
+"Cage 1 FCAL 1 SFP 0"  "APF17060028U24"  "691970-002"  "691970-002"  N/A
+"Cage 2 FCAL 0 SFP 0"  "APF17060028TTF"  ""            ""            N/A
+"Cage 2 FCAL 1 SFP 0"  "APF17060028G51"  "E7Y10A"      "E7Y10A"      N/A
+
+======================================================
+
+TABLE: BBU
+N/A
+
+======================================================
+
+TABLE: Fans
+location                part_number  Model  health
+----------------------  -----------  -----  ------
+hw_node:0,hw_ps:0       Fail         N/A    N/A
+hw_node:0,hw_ps:1       Fail         N/A    N/A
+hw_node:0,hw_battery:0  Fail         N/A    N/A
+hw_node:0,hw_nodefan:0  Fail         N/A    N/A
+hw_node:0,hw_nodefan:2  Fail         N/A    N/A
+hw_node:0,hw_nodefan:4  Fail         N/A    N/A
+
+4) Errors:
+
+TABLE: Errors
+Timestamp            Severity  Component  CodeOrPhrase  Message                                                                                                   Source                       KB
+-------------------  --------  ---------  ------------  ----------------------------------------  ---------------------------  ---
+2025-06-23 13:17:14  Critical  HostPort   offline       Going offline, tgt reset pending 1, offline requested 0                                                   HPE 3PAR 8200.tbz2:2538050
+2025-06-23 13:17:37  Critical  HostPort   OFFLINE       CTLR OFFLINE: RESET - going into resetting state                                                          HPE 3PAR 8200.tbz2:2544820
+2025-06-23 13:16:57  Critical  Disk       failing       Node 0, Control Cache DIMM 0 is failing. Correctable ECC limit exceeded.                                  HPE 3PAR 8200.tbz2:2536641
+2025-06-23 13:17:13  Minor     Other      degradation   Flash Cache I/O times are slow on node: 0.                                                                HPE 3PAR 8200.tbz2:2537664
+2025-06-21 15:34:02  Critical  HostPort   FAILOVER      Port 1:0:1 has failover state active.                                                                     HPE 3PAR 8200.tbz2:2341519
+2025-06-21 15:34:02  Critical  HostPort   failover      Persistent port failovers are still active.                                                               HPE 3PAR 8200.tbz2:2341522
+2025-06-20 15:33:57  Minor     HostPort   ems           RC links must be active on multiple nodes. Configure additional RC ports if necessary.                    HPE 3PAR 8200.tbz2:2341706
+2025-06-23 05:03:06  Minor     HostPort   0x317         FC REPORT LUN, did 0x191f00, host 51402EC0110972C2, cx_id 0x317                                           HPE 3PAR 8200.tbz2:2426791
+2025-06-23 12:15:55  Minor     HostPort   0x8000        ABTS(1) from 291a00 ox_id 0xd8 rx_id 0xffff cx_id 0xb6e vv_id 0x0 cmd 0x2a lba 0xab28 blks 0x1 time 8(s)  HPE 3PAR 8200.tbz2:2542320
+2025-06-23 13:17:43  Critical  HostPort   Failed        Failed to abort sc 0xffff8802f237de80 cx_id 0x1209 ox_id 0x235 rx_id 0x0 status 0x24 ex_status 0x6        HPE 3PAR 8200.tbz2:2554520
+2025-06-23 12:15:34  Major     Other      rebuild       vvol_ssr_rebuild_needed = 1                                                                               HPE 3PAR 8200.tbz2:11194679
+2025-06-16 05:18:51  Critical  Other      Panic         Main CPU by Sys RC:0x12 N#1                                                                               HPE 3PAR 8200.tbz2:57642
+2025-06-16 05:19:06  Critical  Other      FailS         FPGA BIOS FailSafe Chipset Failed: 16                                                                     HPE 3PAR 8200.tbz2:57640

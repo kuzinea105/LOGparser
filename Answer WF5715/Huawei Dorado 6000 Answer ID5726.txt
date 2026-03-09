@@ -1,0 +1,92 @@
+﻿1) Parser metadata:
+   - LLM: deepseek-r1:32b-qwen-distill-fp16
+   - Timestamp (MSK): 00:57:19 09-03-2026 (MSK)
+
+2) Hardware identification:
+Vendor: Huawei
+Class: Storage
+Model: N/A
+
+TABLE: Enclosures
+Enclosure ID  Logic Type  Health Status  Running Status  Location  Type                                                       Temperature(Celsius)  SN                    MAC
+------------  ----------  -------------  --------------  --------  ----------------------------------------  --------------------  --------------------  -----------------
+CTE0          Engine      Normal         Online          --        2U 2-controller 25-slot 2.5-inch SAS controller enclosure  21                    2102352VUX10L5000004  f4:e5:f2:fb:ec:f8
+CTE1          Engine      Normal         Online          --        2U 2-controller 25-slot 2.5-inch SAS controller enclosure  N/A                   N/A                   N/A
+
+======================================================
+
+TABLE: Controllers
+Controller ID  Enclosure ID  Serial Number         MAC Address        IP Address            Role
+-------------  ------------  --------------------  -----------------  --------------------  ------
+786432         CTE0          2102352VUX10L5000004  f4:e5:f2:fb:ec:f8  127.127.127.10:12009  slave
+786433         CTE0          2102352VUX10L5000004  f4:e5:f2:fb:ec:f8  127.127.127.11:12010  master
+
+3) Component status:
+
+TABLE: Disks
+N/A
+
+======================================================
+
+TABLE: PowerSupplies
+Enclosure           location  serial_number         part_number     Power Watt  health
+------------------  --------  --------------------  --------------  ----------  ------
+0x5f4e5f2fbecf8039  PSU1      2102312HGYHVL5002654  PAC2000S12-BG   2000        NORMAL
+0x5f03f95fb6b6303f  PSU 0     2102311DEPHVKC017308  PAC800D1205-CE  800         NORMAL
+0x5f03f95fb6b6303f  PSU 1     2102311DEPHVKC017310  PAC800D1205-CE  800         NORMAL
+
+======================================================
+
+TABLE: SFP
+N/A
+
+======================================================
+
+TABLE: BBU
+location   serial_number     part_number  capacity  charge  age  temperature  health
+---------  ----------------  -----------  --------  ------  ---  -----------  ------
+CTE0.BBU0  033CDXFSL4000789  60.00.13T09  NORMAL    N/A     N/A  N/A          N/A
+CTE0.BBU1  033CDXFSL4000792  60.00.13T09  NORMAL    N/A     N/A  N/A          N/A
+
+======================================================
+
+TABLE: Fans
+location            part_number  Model  health
+------------------  -----------  -----  ------
+FAN_20500_23000_V6  NORMAL       N/A    N/A
+
+4) Errors:
+
+TABLE: Errors
+Timestamp            Severity  Component   CodeOrPhrase       Message                                                                                                                                                  Source                                                          KB
+-------------------  --------  ----------  -----------------  ----------------------------------------  ----------------------------------------  ---
+2025-09-02 09:13:43  Critical  Disk        disk failed        collect mce logs in disk failed                                                                                                                          /opt/esyslog/log-collect/esyslog_collect_mcelog.sh              N/A
+2025-08-26 12:19:17  Critical  HostPort    Port down          Port down nodeId(1) portId(0x22002)                                                                                                                      net_inet_fast_conv.c:FConvProcPortLinkDown,90                   N/A
+2025-08-26 12:19:17  Critical  HostPort    Port down          Port down nodeId(1) portId(0x22003)                                                                                                                      net_inet_fast_conv.c:FConvProcPortLinkDown,90                   N/A
+2025-08-26 12:19:17  Critical  HostPort    Port down          Port down nodeId(0) portId(0x22002)                                                                                                                      net_inet_fast_conv.c:FConvProcPortLinkDown,90                   N/A
+2025-08-26 12:20:53  Critical  HostPort    WARN               Port(0x1000100022002, 12) not support config vrf.                                                                                                        net_vrf_intf.c:VRF_AddPortToVrf,68                              N/A
+2025-08-26 12:20:53  Critical  HostPort    WARN               Port(0x1000100022003, 12) not support config vrf.                                                                                                        net_vrf_intf.c:VRF_AddPortToVrf,68                              N/A
+2025-08-26 12:25:26  Critical  HostPort    WARN               Port(0x1000100022003, 12) not support config vrf.                                                                                                        net_vrf_intf.c:VRF_AddPortToVrf,68                              N/A
+2025-08-26 12:25:27  Critical  Other       ASSERT             EAM_ASSERT: Input para is NULL.                                                                                                                          eam_adp_os.c:getEamNextWord_s,66                                N/A
+2025-08-26 12:25:27  Critical  Other       offline            Read offline cpu failed.                                                                                                                                 eam_cpu_cfg.c:SetOffineCpuToOS,516                              N/A
+2025-08-26 12:25:55  Critical  Other       Assert             Assert((RETURN_OK == retVal)), GetVstoreInfoById(553).                                                                                                   cfg_obj_adapter_ccdb.c:GetVstoreInfoById,553                    N/A
+2025-08-26 12:25:55  Critical  Other       failed             Cmr_auth get tenantName by tenantID(0) failed(-1).                                                                                                       nas_ctrl_cluster_onetrack.c:NasCtrlGetTenantNameByTenantID,381  N/A
+2025-08-26 12:19:17  Critical  Disk        failed             Obj:kvs_kvdb_logregion_KVS24_DP0_RV21_inst Logregion commitdisk failed, ret:-2147443584.                                                                 logRegionCommitDiskExecute,1951                                 N/A
+2025-08-26 12:19:17  Critical  Disk        failed             Obj:kvs_metaftl_tpmgr_KVS24_DP0_RV21_inst Commit disk child fail, commit disk intf failed, tp(0x27e 0x0 0xf6f652c28) retCode(0x80009c80).                tpCommitDiskExecute,267                                         N/A
+2025-08-26 12:29:58  Critical  Controller  controller failed  Perf send async message to module pid (573) of 0 controller failed.                                                                                      perf_plugin_adapter_msg.c:PERF_AdpterSendSyncReqMessage,252     N/A
+2025-08-26 12:19:19  Critical  Other       WARN               SPC: ###VAAI###cmd(type: 1028, volId: 345, lba: 22351872, len: 512) failed(2).                                                                           lun_splitter_vaai.c:splitterProcCtrlFromScsiFinish,1285         N/A
+2025-08-26 12:19:19  Major     Other       WARN               SPC: SPLITTER IO timeout: objId(345), timeout(8021646 us), opcode(1028), phaseId(17),lba(22351872), len(0), ret(2).                                      lun_splitter.c:printSplitterTimeOutIoInfo,120                   N/A
+2025-08-26 12:19:21  Major     Other       WARN               SPC: SPLITTER IO timeout: objId(357), timeout(10344590 us), opcode(2), phaseId(1),lba(3105759715328), len(0), ret(0).                                    lun_splitter.c:printSplitterTimeOutIoInfo,126                   N/A
+2025-08-26 12:25:28  Major     Other       IO timeout         IO timeout err hot reset threshold is 3 , check interval is 10, fix threshold is 3.                                                                      PCIEMGT_SaveBackEndLinkRepairThreshold,1231                     N/A
+2025-08-26 12:25:28  Major     Other       io timeout         Backend overthreshold times, dif 0, io timeout 0, slowlink 0.                                                                                            PCIEMGT_CheckBackendErrOverThreshold,1680                       N/A
+2025-09-02 03:53:20  Critical  Other       missing            Can't parse /proc/cpuinfo: missing [vendor_id] [cpu family] [model] [flags]                                                                              rasdaemon                                                       N/A
+2025-08-19 14:19:02  Critical  Other       fails              Snmp Service:127.0.0.1 succeeded in locking IP address 11.222.5.3. The authentication based on the SNMP protocol fails for 6 times within 60 seconds.    N/A                                                             N/A
+2025-08-18 02:56:16  Critical  Other       fails              Snmp Service:127.0.0.1 succeeded in locking IP address 11.222.24.96. The authentication based on the SNMP protocol fails for 6 times within 60 seconds.  N/A                                                             N/A
+2025-08-18 02:55:58  Critical  Other       fails              Snmp Service:127.0.0.1 succeeded in locking IP address 11.222.24.96. The authentication based on the SNMP protocol fails for 6 times within 60 seconds.  N/A                                                             N/A
+2025-08-26 12:19:18  Critical  HostPort    faultLevel         HEAL task ProcessFault(fdsacore 422) report, nodeId(0), cause(ShmRepairNodeReboot), faultLevel(MAJOR).                                                   N/A                                                             N/A
+2025-08-26 12:21:16  Critical  HostPort    faultLevel         HEAL task ProcessFault(fdsacore 422) report, nodeId(0), cause(ShmRepairNodeReboot), faultLevel(MAJOR).                                                   N/A                                                             N/A
+2025-08-26 12:30:08  Critical  Disk        FaultS             SystemDiskFaultSwapmaster |45 |Local |Completed |Failure |retry: 0 |cost: 0.0(s)                                                                         diagsh                                                          N/A
+2025-08-26 12:41:04  Critical  Disk        FaultS             SystemDiskFaultSwapmaster |56 |Local |Completed |Failure |retry: 0 |cost: 0.0(s)                                                                         diagsh                                                          N/A
+2025-08-26 12:30:08  Critical  Other       FaultS             ADM_CTRL: NodeFaultStopService                                                                                                                           diagsh                                                          N/A
+2025-08-26 12:30:08  Critical  Other       FaultS             ADM_CTRL: NodeFaultStartService                                                                                                                          diagsh                                                          N/A
+2025-08-26 12:30:08  Critical  Other       FaultS             NodeFaultSysPre: resetFaultNid                                                                                                                           diagsh                                                          N/A
