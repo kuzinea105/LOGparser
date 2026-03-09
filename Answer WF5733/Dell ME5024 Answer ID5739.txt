@@ -1,0 +1,63 @@
+﻿1) Parser metadata:
+   - LLM: deepseek-r1:32b-qwen-distill-fp16
+   - Timestamp (MSK): 11:57:05 09-03-2026 (MSK)
+
+2) Hardware identification:
+Vendor: Dell EMC
+Class: Storage
+Model: ME5024
+
+TABLE: Enclosures
+N/A
+
+======================================================
+
+TABLE: Controllers
+N/A
+
+3) Component status:
+
+TABLE: Disks
+Position  SerialNumber    PartNumber  Vendor   Size      Online
+--------  --------------  ----------  -------  --------  ------
+0.0       S6LDNE0TB04161  N/A         SAMSUNG  1920.3GB  Online
+0.1       S6LDNE0TB04156  N/A         SAMSUNG  1920.3GB  Online
+0.2       S6LDNE0TB04157  N/A         SAMSUNG  1920.3GB  Online
+0.3       S6LDNE0TB04155  N/A         SAMSUNG  1920.3GB  Online
+0.4       S6LDNE0TB04159  N/A         SAMSUNG  1920.3GB  Online
+0.5       S6LDNE0TB04164  N/A         SAMSUNG  1920.3GB  Online
+
+======================================================
+
+TABLE: PowerSupplies
+Enclosure  location     serial_number    part_number  Power Watt  health
+---------  -----------  ---------------  -----------  ----------  ------
+0          PSU 0 Left   PMF1104029G0PQV  1104029-03   OK          N/A
+0          PSU 1 Right  PMF1104029G0PJM  1104029-03   OK          N/A
+
+======================================================
+
+TABLE: SFP
+N/A
+
+======================================================
+
+TABLE: BBU
+N/A
+
+======================================================
+
+TABLE: Fans
+location                    part_number  Model  health
+--------------------------  -----------  -----  ------
+Enclosure 0, PSU 0 - Left   N/A          OK     N/A
+Enclosure 0, PSU 1 - Right  N/A          OK     N/A
+Enclosure 0, PSU 1 - Right  N/A          OK     N/A
+
+4) Errors:
+
+Timestamp;Severity;Component;CodeOrPhrase;Message;Source;KB
+2025-06-02 15:02:51;Critical;Controller;Controller failed;ERR) 2025-06-02 15:02:51.737 (18) CapiRequestGetController failed. [3001:CAPI_ERROR_CONTROLLER_SHUTDOWN];Dell ME5024.zip:2216257;N/A
+2025-06-02 15:00:39;Critical;Other;command timeout;[hit] 2025-06-02 15:00:39.071: [2] spawner(1448): command: xmlcntrl /app/default/cfg/users/PIKADM.xml "PIKADM" "sha256", command timeout for spawner: 1800;Dell ME5024.zip:47915;N/A
+2025-06-02 15:03:00;Critical;Other;warn;WAR) 2025-06-02 15:03:00.364 (none) user.warn kernel: [ 9.319615] STX - reset ETH0_MAC_RESET, assert - value: 0x303;Dell ME5024.zip:1216177;N/A
+2025-06-02 15:00:33;Major;Disk;command timeout;[hit] 2025-06-02 15:00:33.453: [1] spawner(1339): command: readslot, command timeout for spawner: 10;Dell ME5024.zip:47912;N/A

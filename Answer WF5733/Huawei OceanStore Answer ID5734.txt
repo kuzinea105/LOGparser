@@ -1,0 +1,101 @@
+﻿1) Parser metadata:
+   - LLM: deepseek-r1:32b-qwen-distill-fp16
+   - Timestamp (MSK): 11:23:45 09-03-2026 (MSK)
+
+2) Hardware identification:
+Vendor: Huawei
+Class: Storage
+Model: OceanStor 2600 V3
+
+TABLE: Enclosures
+N/A
+
+======================================================
+
+TABLE: Controllers
+Controller ID  WWN                               Status
+-------------  --------------------------------  ------
+0A             65c546d100257a17b17d818900000001  Online
+
+3) Component status:
+
+TABLE: Disks
+Position  SerialNumber  PartNumber  Vendor  Size  Online
+--------  ------------  ----------  ------  ----  -------
+1         254           786         Huawei  N/A   Unknown
+1         254           397         Huawei  N/A   Unknown
+1         235           1909        Huawei  N/A   Unknown
+1         235           2213        Huawei  N/A   Unknown
+1         235           2345        Huawei  N/A   Unknown
+1         235           2213        Huawei  N/A   Unknown
+1         235           2345        Huawei  N/A   Unknown
+1         235           1988        Huawei  N/A   Unknown
+1         235           2098        Huawei  N/A   Unknown
+1         235           2123        Huawei  N/A   Unknown
+1         254           786         Huawei  N/A   Unknown
+1         254           397         Huawei  N/A   Unknown
+1         235           1909        Huawei  N/A   Unknown
+1         235           2213        Huawei  N/A   Unknown
+1         235           2345        Huawei  N/A   Unknown
+1         235           2213        Huawei  N/A   Unknown
+1         235           2345        Huawei  N/A   Unknown
+1         235           1988        Huawei  N/A   Unknown
+1         235           2098        Huawei  N/A   Unknown
+1         235           2123        Huawei  N/A   Unknown
+1         254           786         Huawei  N/A   Unknown
+
+======================================================
+
+TABLE: PowerSupplies
+Enclosure  location  serial_number         part_number  Power Watt  health
+---------  --------  --------------------  -----------  ----------  ------
+DAE011     PSU 1     2102311DEPHVHB010446  02311DEP     Fault       N/A
+DAE010     PSU 1     2102311DEPHVHB009429  02311DEP     Fault       N/A
+CTE0       PSU 0     2102311DEPHVHB010793  02311DEP     Fault       N/A
+CTE0       PSU 1     2102311DEPHVHB010779  02311DEP     Fault       N/A
+
+======================================================
+
+TABLE: SFP
+N/A
+
+======================================================
+
+TABLE: BBU
+location  serial_number  part_number  capacity  charge  age  temperature  health
+--------  -------------  -----------  --------  ------  ---  -----------  ------
+CTE0.A.0  N/A            N/A          N/A       N/A     N/A  N/A          N/A
+CTE0.B.0  N/A            N/A          N/A       N/A     N/A  N/A          N/A
+
+======================================================
+
+TABLE: Fans
+location     part_number  Model  health
+-----------  -----------  -----  ------
+CTE0.PSU0    N/A          N/A    N/A
+CTE0.PSU1    N/A          N/A    N/A
+DAE021.FAN0  N/A          N/A    N/A
+DAE011.FAN0  N/A          N/A    N/A
+DAE021.FAN1  N/A          N/A    N/A
+DAE011.FAN1  N/A          N/A    N/A
+DAE021.PSU0  N/A          N/A    N/A
+DAE011.PSU0  N/A          N/A    N/A
+DAE021.PSU1  N/A          N/A    N/A
+DAE011.PSU1  N/A          N/A    N/A
+DAE022.FAN0  N/A          N/A    N/A
+DAE010.FAN0  N/A          N/A    N/A
+DAE022.FAN1  N/A          N/A    N/A
+DAE010.FAN1  N/A          N/A    N/A
+DAE022.PSU0  N/A          N/A    N/A
+DAE010.PSU0  N/A          N/A    N/A
+DAE022.PSU1  N/A          N/A    N/A
+DAE010.PSU1  N/A          N/A    N/A
+DAE020.FAN0  N/A          N/A    N/A
+DAE020.FAN1  N/A          N/A    N/A
+DAE020.PSU0  N/A          N/A    N/A
+DAE020.PSU1  N/A          N/A    N/A
+
+4) Errors:
+
+Timestamp;Severity;Component;CodeOrPhrase;Message;Source;KB
+2025-07-30 13:17:52;Critical;Other;0x4000;[hit] 24606485 2025-07-30 13:17:52 0x200F00CA0033 Event Informational -- None admin:10.24.0.13 failed to test NTP server (server address 10.11.6.100). Error code: 0x4000ca16.;Huawei OceanStore.zip:13994;N/A

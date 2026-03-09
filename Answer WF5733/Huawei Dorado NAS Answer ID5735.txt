@@ -1,0 +1,82 @@
+﻿1) Parser metadata:
+   - LLM: deepseek-r1:32b-qwen-distill-fp16
+   - Timestamp (MSK): 11:23:52 09-03-2026 (MSK)
+
+2) Hardware identification:
+Vendor: Huawei
+Class: Storage
+Model: N/A
+
+TABLE: Enclosures
+Enclosure ID  Type                                                       Health Status  Running Status  SN
+------------  ----------------------------------------  -------------  --------------  --------------------
+CTE0          2U 2-controller 25-slot 2.5-inch SAS controller enclosure  Normal         Online          2102352VUXFSLC000004
+CTE0          2U 2-controller 25-slot 2.5-inch SAS controller enclosure  Normal         Online          2102352VUXFSLC000004
+
+======================================================
+
+TABLE: Controllers
+Controller Name  Model           Version
+---------------  --------------  -------
+0A               PAC2000S12-BG   A
+0B               PAC800D1205-CE  6DB
+
+3) Component status:
+
+TABLE: Disks
+N/A
+
+======================================================
+
+TABLE: PowerSupplies
+Enclosure  location  serial_number         part_number     Power Watt  health
+---------  --------  --------------------  --------------  ----------  --------------
+0          PSU 0     2102312HGYW0L8001472  PAC2000S12-BG   2000        NORMAL
+0          PSU 1     2102312HGYW0L8001406  PAC2000S12-BG   2000        POWER_NO_INPUT
+1          PSU 0     2102311DEPHVLB005277  PAC800D1205-CE  800         NORMAL
+1          PSU 1     2102311DEPHVLB005320  PAC800D1205-CE  800         NORMAL
+
+======================================================
+
+TABLE: SFP
+location  serial_number     part_number    Model    health
+--------  ----------------  -------------  -------  ------
+P0        Z00A2R2047000092  L99HE028-SD-R  SAS_12G  NORMAL
+P2        U3KABB24999       LTF8504-BC+    FC_16G   NORMAL
+
+======================================================
+
+TABLE: BBU
+location   serial_number         part_number      capacity  charge  age  temperature  health
+---------  --------------------  ---------------  --------  ------  ---  -----------  ------
+CTE0.BBU0  2124060449EXLA003772  BQ-4S3P-R0D-V10  N/A       99%     N/A  N/A          N/A
+CTE0.BBU1  2124060449EXLA001519  BQ-4S3P-R0D-V10  N/A       99%     N/A  N/A          N/A
+
+======================================================
+
+TABLE: Fans
+location           part_number         Model  health
+-----------------  ------------------  -----  ------
+Enclosure 0 Fan 1  FAN_20500_23000_V6  N/A    NORMAL
+PSU0 fan           FAN_20500_23000_V6  N/A    NORMAL
+
+4) Errors:
+
+Timestamp;Severity;Component;CodeOrPhrase;Message;Source;KB
+2025-12-05 23:41:36;Critical;Disk;disk failed;[hit] [2025-12-05 23:41:36][152102599.051103] [/opt/esyslog/log-collect/esyslog_collect_mcelog.sh] collect mce logs in disk failed.;Huawei Dorado NAS.zip:27672623;N/A
+2025-12-04 23:04:02;Critical;Other;ASSERT;[hit] [2025-12-04 23:04:02] [152014607350][1500002310000][ERROR][(ASSERTION FAILURE) (v_usProxyID < OM_CLUSTER_CONTROL_NUM) is False, return(RET_ERR)!][ALM][alm_mgr.c:ALM_NotifyProxyNodeRestoreAlm,12635][alarm,126823,42];Huawei Dorado NAS.zip:27707170;N/A
+2025-12-05 23:34:02;Critical;HostPort;UnCorrectable;[hit] [2025-12-05 23:34:02][152101634.299747] [1500002ce0003][INFO][ ***************** this is UnCorrectable error count ****************][PCIEMGT][:PCIEMGT_PrintPortAerCnt,426][devm,pid:41795,tid:74330];Huawei Dorado NAS.zip:27742566;N/A
+2025-12-02 17:46:42;Critical;Other;fails;[hit] 41657413 2025-12-02 17:46:42 0x200F00310014 Event Informational -- None Snmp Service:127.0.0.1 succeeded in locking IP address ::ffff:11.222.5.22. The authentication based on the SNMP protocol fails for 6 times within 60 seconds. The IP address will be locked for 180 seconds.;Huawei Dorado NAS.zip:125673;N/A
+2025-12-01 05:00:06;Critical;HostPort;fails;[hit] 41616428 2025-12-01 05:00:06 0x100F0015001C Event Informational -- None UltraPath push information from host (ID 1) is not received at the preset time point or fails to be processed.;Huawei Dorado NAS.zip:125694;N/A
+2025-11-03 10:56:39;Critical;HostPort;FaultTime;[hit] ReportingAlarmFaultTime --- 2025-11-03 10:56:39;Huawei Dorado NAS.zip:685328;N/A
+2025-12-05 23:33:45;Minor;Other;ResetS;[hit] [2025-12-05 23:33:45][152102126.989278] FastResetSysPrehAsyncHandle+0x94/0x1f0 [syskernel];Huawei Dorado NAS.zip:20808438;N/A
+2025-12-05 15:15:07;Minor;Other;0x7b01;[hit] [2025-12-05 15:15:07][152071698.797276] [1500001370137][INFO][Alloc rec ckg node map return no mem, zoneName(DTOBJ_DP0x0_RV0x12_EC_2_DIF512), ckgId(0x7b01).][RECYCLE][:recAddCkgNodeMap,58][app_data,pid:43833,tid:43995];Huawei Dorado NAS.zip:27729476;N/A
+2025-12-03 07:18:59;Critical;Other;WARN;[ctx+] [2025-12-03 07:18:59][151870842.655763] [][1500002c70000][WARN][Get ipv6 netdevice failed.][TOE][TC_GetToeDevFromIpv6,289][http-nio-8888-e];Huawei Dorado NAS.zip:27881070;N/A
+2025-12-01 12:26:49;Critical;Other;WARN;[hit] [2025-12-01 12:26:49][151716514.444801] [1500001300000][WARN][ZoneName(MTOBJ_DP0x0_RV0x23_ID0x0) ckgId(0x353) blkId(0x22500000d0d) ck tail check fail, index(0x2).][ZONEOBJ][:stepCheckTailFull,19363][app_data,pid:43636,tid:43768];Huawei Dorado NAS.zip:28241620;N/A
+2025-11-10 12:52:16;Minor;Other;0x7300;[hit] [2025-11-10 12:52:16][149903650.614536] [1500001370137][INFO][Alloc rec ckg node map return no mem, zoneName(DTOBJ_DP0x0_RV0x21_EC_2_DIF512), ckgId(0x7300).][RECYCLE][:recAddCkgNodeMap,58][app_data,pid:43636,tid:43764];Huawei Dorado NAS.zip:28284832;N/A
+2025-10-31 22:30:30;Minor;Other;0x2823;[hit] [2025-10-31 22:30:30][149074349.339268] [1500001370137][INFO][Alloc rec ckg node map return no mem, zoneName(DTOBJ_DP0x0_RV0x31_EC_2_DIF512), ckgId(0x2823).][RECYCLE][:recAddCkgNodeMap,58][app_data,pid:43636,tid:43808];Huawei Dorado NAS.zip:27974332;N/A
+2025-11-18 02:58:54;Minor;Other;0x1209;[hit] [2025-11-18 02:58:54][150559245.327222] [1500001370000][INFO][ZoneName(DTOBJ_DP0x0_RV0x21_EC_2_DIF512), can not add ckgId(0x12099) to hash table.][RECYCLE][:addToMultiWaitRecList,223][app_data,pid:43636,tid:43764];Huawei Dorado NAS.zip:27988838;N/A
+2025-11-27 03:44:40;Minor;Other;0x1209;[hit] [2025-11-27 03:44:40][151339587.253850] [1500001370000][INFO][ZoneName(DTOBJ_DP0x0_RV0x32_EC_2_DIF512), can not add ckgId(0x1209) to hash table.][RECYCLE][:addToMultiWaitRecList,223][app_data,pid:43636,tid:43811];Huawei Dorado NAS.zip:27835155;N/A
+2025-11-29 23:35:11;Minor;Other;0x2250;[hit] [2025-11-29 23:35:11][151583307.562108] [1500001370137][INFO][Alloc rec ckg node map return no mem, zoneName(DTOBJ_DP0x0_RV0x2_EC_2_DIF512), ckgId(0x2250).][RECYCLE][:recAddCkgNodeMap,58][app_data,pid:43833,tid:43951];Huawei Dorado NAS.zip:28885334;N/A
+2025-11-28 07:18:56;Minor;Other;0x2250;[hit] [2025-11-28 07:18:56][151438842.155910] [1500001300000][INFO][Zone service is not started, zoneName(DTOBJ_DP0x0_RV0x11_EC_2_DIF512) blkId(0x22500014d3d).][ZONEOBJ][:getHeadInfoReadHeadDone,1057][app_data,pid:43636,tid:43738];Huawei Dorado NAS.zip:27857942;N/A
+2025-12-03 07:18:58;Minor;Other;0x2250;[hit] [2025-12-03 07:18:58][151870841.962322] [1500001300000][INFO][Zone service is not started, zoneName(MTOBJ_DP0x0_RV0x1_ID0x1) blkId(0x2250000197a).][ZONEOBJ][:getHeadInfoReadHeadDone,1057][app_data,pid:43636,tid:43738];Huawei Dorado NAS.zip:27881069;N/A

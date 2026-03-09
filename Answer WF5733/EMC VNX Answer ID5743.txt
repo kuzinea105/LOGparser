@@ -1,0 +1,65 @@
+﻿1) Parser metadata:
+   - LLM: deepseek-r1:32b-qwen-distill-fp16
+   - Timestamp (MSK): 12:14:56 09-03-2026 (MSK)
+
+2) Hardware identification:
+Vendor: EMC
+Class: Storage
+Model: VNX5600
+
+TABLE: Enclosures
+N/A
+
+======================================================
+
+TABLE: Controllers
+N/A
+
+3) Component status:
+
+TABLE: Disks
+Position  SerialNumber  PartNumber   Vendor   Size    Online
+--------  ------------  -----------  -------  ------  -------
+0.0       37K0A019FDSD  DG118000214  TOSHIBA  549691  Offline
+0.1       N/A           N/A          N/A      N/A     Unknown
+0.2       37J0A06TFDSD  DG118000214  TOSHIBA  549691  Offline
+
+======================================================
+
+TABLE: PowerSupplies
+Enclosure          location        serial_number   part_number  Power Watt  health
+-----------------  --------------  --------------  -----------  ----------  ------
+Bus 0 Enclosure 0  Power Supply 1  AC7I4165203569  N/A          Present     N/A
+Bus 1 Enclosure 0  Power Supply 0  AC7P4164402052  N/A          Present     N/A
+Bus 1 Enclosure 0  Power Supply 1  AC7P4164402164  N/A          Present     N/A
+
+======================================================
+
+TABLE: SFP
+location  serial_number    part_number      Model                          health
+--------  ---------------  ---------------  -----------------------------  -------
+FE2/SC    AGL1624D5003959  AFBR-57D9AMZ-E2  Optimus 1100W OTS PSU (Acbel)  Present
+FE3/SC    AGL1624D5005751  AFBR-57D9AMZ-E2  Optimus 1100W OTS PSU (Acbel)  Present
+FE8/SC    AGL1624D5023159  AFBR-57D9AMZ-E2  Optimus 1100W OTS PSU (Acbel)  Present
+FE9/SC    AGL1624D5023142  AFBR-57D9AMZ-E2  Optimus 1100W OTS PSU (Acbel)  Present
+FE5/SC    AGL1624D5005775  AFBR-57D9AMZ-E2  Optimus 1100W OTS PSU (Acbel)  Present
+FE4/SC    AGL1624D5005813  AFBR-57D9AMZ-E2  Optimus 1100W OTS PSU (Acbel)  Present
+FE10/SC   AGL1624D5023139  AFBR-57D9AMZ-E2  Optimus 1100W OTS PSU (Acbel)  Present
+FE11/SC   AGL1624D5023172  AFBR-57D9AMZ-E2  Optimus 1100W OTS PSU (Acbel)  Present
+
+======================================================
+
+TABLE: BBU
+N/A
+
+======================================================
+
+TABLE: Fans
+N/A
+
+4) Errors:
+
+Timestamp;Severity;Component;CodeOrPhrase;Message;Source;KB
+10/30/2024 01:58:50;Critical;PSU;missing;File or information missing. Follow knowledgebase article;;emc261645;;:;EMC VNX.zip:93381;KB:emc261645
+10/30/2024 01:58:49;Critical;PSU;Power Supply Fault;Follow knowledgebase article;;emc261645;;:;EMC VNX.zip:93300;KB:emc261645
+10/30/2024 01:58:49;Critical;Other;fails;if arg1 condition fails;EMC VNX.zip:93354;source:unknown

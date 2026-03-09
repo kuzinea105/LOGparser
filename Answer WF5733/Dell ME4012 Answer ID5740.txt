@@ -1,0 +1,79 @@
+﻿1) Parser metadata:
+   - LLM: deepseek-r1:32b-qwen-distill-fp16
+   - Timestamp (MSK): 12:00:59 09-03-2026 (MSK)
+
+2) Hardware identification:
+Vendor: Dell EMC
+Class: Storage
+Model: ME4012
+
+TABLE: Enclosures
+N/A
+
+======================================================
+
+TABLE: Controllers
+N/A
+
+3) Component status:
+
+TABLE: Disks
+N/A
+
+======================================================
+
+TABLE: PowerSupplies
+N/A
+
+======================================================
+
+TABLE: SFP
+N/A
+
+======================================================
+
+TABLE: BBU
+location  serial_number  part_number  capacity  charge  age  temperature  health
+--------  -------------  -----------  --------  ------  ---  -----------  ------
+Ctlr B    N/A            98%          OK        29 C    OK   N/A          N/A
+
+======================================================
+
+TABLE: Fans
+location                    part_number  Model  health
+--------------------------  -----------  -----  ------
+Enclosure 0, PSU 0 - Left   N/A          Up     OK
+Enclosure 0, PSU 1 - Right  N/A          Up     OK
+Enclosure 0, PSU 1 - Right  N/A          Up     OK
+Enclosure 1, Fan Module 0   N/A          Up     OK
+Enclosure 1, Fan Module 0   N/A          Up     OK
+Enclosure 1, Fan Module 1   N/A          Up     OK
+Enclosure 1, Fan Module 1   N/A          Up     OK
+Enclosure 1, Fan Module 2   N/A          Up     OK
+Enclosure 1, Fan Module 2   N/A          Up     OK
+Enclosure 1, Fan Module 3   N/A          Up     OK
+Enclosure 1, Fan Module 3   N/A          Up     OK
+Enclosure 1, Fan Module 4   N/A          Up     OK
+Enclosure 1, Fan Module 4   N/A          Up     OK
+Enclosure 2, Fan Module 0   N/A          Up     OK
+Enclosure 2, Fan Module 0   N/A          Up     OK
+Enclosure 2, Fan Module 1   N/A          Up     OK
+Enclosure 2, Fan Module 1   N/A          Up     OK
+Enclosure 2, Fan Module 2   N/A          Up     OK
+Enclosure 2, Fan Module 2   N/A          Up     OK
+Enclosure 2, Fan Module 3   N/A          Up     OK
+Enclosure 2, Fan Module 3   N/A          Up     OK
+Enclosure 2, Fan Module 4   N/A          Up     OK
+Enclosure 2, Fan Module 4   N/A          Up     OK
+
+4) Errors:
+
+Timestamp;Severity;Component;CodeOrPhrase;Message;Source;KB
+2025-11-14 15:33:23;Critical;DiskGroup;missing;A disk that was part of a disk group is missing and the disk group is quarantined. (disk group: dgA01, SN: 00c0ff65d5e00000b64a356400000000) (disk: channel: 4294967295, ID: 0, SN: ZL2B94AH, enclosure: 2, slot: 6);Dell ME4012.zip:402484;N/A
+2025-11-14 15:33:25;Critical;DiskGroup;WARN;Vdisk quick rebuild failed. Command failed. (vdisk: dgA01, SN: 00c0ff65d5e00000b64a356400000000) (error code: 1);Dell ME4012.zip:402485;N/A
+2025-11-14 15:33:25;Critical;DiskGroup;quarantine;A vdisk was quarantined. (vdisk: dgA01, SN: 00c0ff65d5e00000b64a356400000000);Dell ME4012.zip:402482;N/A
+2025-11-15 10:10:54;Critical;Other;offline;The metadata volume for a storage pool went offline. Volume mappings and persistent reservations are inaccessible or lost. (storage pool: A, SN: 00c0ff65d5e00000be4a356401000000);Dell ME4012.zip:402930;N/A
+2025-11-14 22:44:29;Critical;Controller;Failover;Failover completed. (failed or shutdown controller: A);Dell ME4012.zip:402644;N/A
+2025-11-14 15:29:30;Minor;DiskGroup;reconstruct;ADAPT disk group critical zone standard full reconstruction started. (disk-group: dgA01, SN: 00c0ff65d5e00000b64a356400000000);Dell ME4012.zip:402478;N/A
+2025-11-08 00:01:05;Minor;Other;hang;The SAS topology changed (components were added or removed). (Channel: 1, number of elements: 620, expanders: 11, native levels: 0, partner levels: 3, device PHYs: 119);Dell ME4012.zip:402120;N/A
+2025-11-08 00:01:20;Minor;Disk;hang;The configuration of one or more disks was changed. (changed parameter: SMART support, new setting: enabled, number of disks changed: 1, total number of disks: 108);Dell ME4012.zip:404951;N/A

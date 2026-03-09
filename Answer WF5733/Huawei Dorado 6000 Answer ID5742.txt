@@ -1,0 +1,68 @@
+﻿1) Parser metadata:
+   - LLM: deepseek-r1:32b-qwen-distill-fp16
+   - Timestamp (MSK): 12:11:15 09-03-2026 (MSK)
+
+2) Hardware identification:
+Vendor: Huawei
+Class: Storage
+Model: N/A
+
+TABLE: Enclosures
+Enclosure ID  Type                                                       Health Status  Location  SN                    MAC
+------------  ----------------------------------------  -------------  --------  --------------------  -----------------
+CTE0          2U 2-controller 25-slot 2.5-inch SAS controller enclosure  Normal         --        2102352VUX10L5000004  f4:e5:f2:fb:ec:f8
+
+======================================================
+
+TABLE: Controllers
+Controller ID  Role    Status  IP                    Model
+-------------  ------  ------  --------------------  --------------
+786432         slave   normal  127.127.127.10:12009  PAC2000S12-BG
+786433         master  normal  127.127.127.11:12010  PAC800D1205-CE
+
+3) Component status:
+
+TABLE: Disks
+N/A
+
+======================================================
+
+TABLE: PowerSupplies
+Enclosure  location  serial_number         part_number     Power Watt  health
+---------  --------  --------------------  --------------  ----------  ------
+0          PSU 0     2102312HGYHVL5002667  PAC2000S12-BG   2000        NORMAL
+0          PSU 1     2102312HGYHVL5002654  PAC2000S12-BG   2000        NORMAL
+1          PSU 0     2102311DEPHVKC017308  PAC800D1205-CE  800         NORMAL
+1          PSU 1     2102311DEPHVKC017310  PAC800D1205-CE  800         NORMAL
+
+======================================================
+
+TABLE: SFP
+N/A
+
+======================================================
+
+TABLE: BBU
+location   serial_number     part_number      capacity  charge       age  temperature  health
+---------  ----------------  ---------------  --------  -----------  ---  -----------  ------
+CTE0.BBU0  033CDXFSL4000789  BQ-4S3P-R0D-V09  N/A       CHARGE_FULL  N/A  NORMAL       N/A
+CTE0.BBU1  033CDXFSL4000792  BQ-4S3P-R0D-V09  N/A       CHARGE_FULL  N/A  NORMAL       N/A
+
+======================================================
+
+TABLE: Fans
+location           part_number         Model  health
+-----------------  ------------------  -----  ------
+Enclosure 0 Fan 1  FAN_20500_23000_V6  N/A    N/A
+
+4) Errors:
+
+Timestamp;Severity;Component;CodeOrPhrase;Message;Source;KB
+2025-09-01 17:53:59;Critical;Disk;faulty;[hit] 53231647 2025-09-01 17:53:59 0xF00ED000F Fault Major Unrecovered None Memory (controller enclosure CTE0, controller A, controller BOM 03059109, controller SN 210305910910M2000003, slot DIMM170) is faulty. Error code: 0x4000cff1.;Huawei Dorado 6000.zip:81949;N/A
+2025-09-02 09:13:44;Critical;Disk;disk failed;[hit] [2025-09-02 09:13:44][33929284.287270] [/opt/esyslog/log-collect/esyslog_collect_mcelog.sh] collect mce logs in disk failed.;Huawei Dorado 6000.zip:30678600;N/A
+2025-08-26 12:30:03;Critical;Controller;controller failed;[hit] [2025-08-26 12:30:03] [33336274282][15000023e0031][ERROR][Perf send async message to module pid (573) of 0 controller failed.][PM][perf_plugin_adapter_msg.c:PERF_AdpterSendSyncReqMessage,252][perf,73842,274];Huawei Dorado 6000.zip:32865993;N/A
+2025-08-26 12:25:26;Critical;HostPort;Port down;[hit] [2025-08-26 12:25:26][33335999.279578] [1500000000000][INFO][[EAM_PRI]Port down nodeId(1) portId(0x22003)][default][net_inet_fast_conv.c:FConvProcPortLinkDown,90][devm,pid:65669,tid:65999];Huawei Dorado 6000.zip:13040342;N/A
+2025-08-26 12:26:15;Critical;Other;Assert;[hit] [2025-08-26 12:26:15][ 319.698193] [15000010b0000][ERR][Assert((RETURN_OK == retVal)), GetVstoreInfoById(553).][cfg_agent][cfg_obj_adapter_ccdb.c:GetVstoreInfoById,553][app_data,pid:60039,tid:60081];Huawei Dorado 6000.zip:30586338;N/A
+2025-08-26 12:25:27;Critical;Other;offline;[ctx+] [2025-08-26 12:25:27][ 272.204776] [1500001f502e4][ERR][EAM_CFG: Read offline cpu failed.][OSP_DEV][eam_cpu_cfg.c:SetOffineCpuToOS,516][devm,pid:56108,tid:56108];Huawei Dorado 6000.zip:30585122;N/A
+2025-08-26 12:36:32;Major;Other;io timeout;[hit] [2025-08-26 12:36:32][ 269.234614] [1500002ce0004][INFO][Backend overthreshold times, dif 0, io timeout 0, slowlink 0.][PCIEMGT][:PCIEMGT_CheckBackendErrOverThreshold,1680][devm,pid:54644,tid:54644];Huawei Dorado 6000.zip:33221650;N/A
+2025-05-19 11:44:58;Critical;Other;Warn;[hit] 49272525 2025-05-19 11:44:58 0x11C36D0001 Fault Warning Recovered 2025-05-19 11:56:30 NTP failed to synchronize time. Error code: 0x4000c9a0.;Huawei Dorado 6000.zip:95281;N/A

@@ -1,0 +1,126 @@
+﻿1) Parser metadata:
+   - LLM: deepseek-r1:32b-qwen-distill-fp16
+   - Timestamp (MSK): 12:08:14 09-03-2026 (MSK)
+
+2) Hardware identification:
+Vendor: IBM
+Class: Storage
+Model: 3PAR 8200
+
+TABLE: Enclosures
+Name   Manufacturer  Part Number  Serial Number   Model Name         Assembly Rev
+-----  ------------  -----------  --------------  -----------------  ------------
+cage0  XYRATEX       QR490-63007  EEAUBA2TF6735B  HP 12GB MLK 2U A2  4082
+cage1  XYRATEX       QR491-63005  EWASNA1TF63BSS  HPE 12GB 4U A1     409b
+
+======================================================
+
+TABLE: Controllers
+Brand   Model     Firmware     Type
+------  --------  -----------  ----
+LSI     9300-2P   10.10.03.00  SAS
+EMULEX  LPE16002  11.1.220.10  FC
+
+3) Component status:
+
+TABLE: Disks
+Position  SerialNumber  PartNumber  Vendor  Size    Online
+--------  ------------  ----------  ------  ------  -------
+0:0:0     N/A           IBM         1787    Online  Unknown
+0:1:0     N/A           IBM         1787    Online  Unknown
+0:2:0     N/A           IBM         1787    Online  Unknown
+0:3:0     N/A           IBM         1787    Online  Unknown
+0:4:0     N/A           IBM         1787    Online  Unknown
+0:5:0     N/A           IBM         1787    Online  Unknown
+0:6:0     N/A           IBM         1787    Online  Unknown
+0:7:0     N/A           IBM         1787    Online  Unknown
+0:8:0     N/A           IBM         1787    Online  Unknown
+0:9:0     N/A           IBM         1787    Online  Unknown
+0:10:0    N/A           IBM         1787    Online  Unknown
+0:11:0    N/A           IBM         1787    Online  Unknown
+0:12:0    N/A           IBM         1787    Online  Unknown
+0:13:0    N/A           IBM         1787    Online  Unknown
+0:14:0    N/A           IBM         1787    Online  Unknown
+0:15:0    N/A           IBM         1787    Online  Unknown
+0:16:0    N/A           IBM         1787    Online  Unknown
+2:5:0     N/A           IBM         1805    Online  Unknown
+0:18:0    N/A           IBM         1787    Online  Unknown
+0:19:0    N/A           IBM         1787    Online  Unknown
+
+======================================================
+
+TABLE: PowerSupplies
+Enclosure  location        serial_number   part_number  Power Watt  health
+---------  --------------  --------------  -----------  ----------  ------
+0          Power Supply 0  5DNSFA343611ND  727386-001   764W        N/A
+0          Power Supply 1  5DNSFA343611UO  727386-001   764W        N/A
+1          Power Supply 1  5EBMRA2TF6500C  756486-001   580W        N/A
+1          Power Supply 2  5EBMRA2TF650EM  756486-001   580W        N/A
+2          Power Supply 1  5EBMRA2TF6608Z  756486-001   580W        N/A
+2          Power Supply 2  5EBMRA2TF650C8  756486-001   580W        N/A
+
+======================================================
+
+TABLE: SFP
+location  serial_number   part_number  Model  health
+--------  --------------  -----------  -----  ------
+N/A       Onboard         E7Y10A       N/A    N/A
+N/A       Onboard         E7Y10A       N/A    N/A
+N/A       Onboard         E7Y10A       N/A    N/A
+N/A       1D9D06DC        691970-002   N/A    N/A
+N/A       1D9D0761        691970-002   N/A    N/A
+N/A       1D9D0773        691970-002   N/A    N/A
+N/A       1D9D0799        691970-002   N/A    N/A
+N/A       1BA65760        691970-002   N/A    N/A
+N/A       1BA65776        691970-002   N/A    N/A
+N/A       1B71BA4E        691970-002   N/A    N/A
+N/A       1BA65750        691970-002   N/A    N/A
+N/A       5CF71101C7      691970-002   N/A    N/A
+N/A       5CF61900J4      691970-002   N/A    N/A
+N/A       7CR652J2MM      691970-002   N/A    N/A
+N/A       7CR652J2MU      691970-002   N/A    N/A
+N/A       7CR706J2AG      691970-002   N/A    N/A
+N/A       7CR706J2AA      691970-002   N/A    N/A
+N/A       7CR706J2AH      691970-002   N/A    N/A
+N/A       7CR706J29W      691970-002   N/A    N/A
+N/A       6CV735J4HM      691970-002   N/A    N/A
+N/A       6CV732J5EG      691970-002   N/A    N/A
+N/A       7CR616JY5W      691970-002   N/A    N/A
+N/A       7CR616JY5X      691970-002   N/A    N/A
+N/A       7CR616JY6F      691970-002   N/A    N/A
+N/A       7CR616JY6H      691970-002   N/A    N/A
+N/A       170684401352    691970-002   N/A    N/A
+N/A       174393401396    691970-002   N/A    N/A
+N/A       APF17080020W9H  691970-002   N/A    N/A
+N/A       APF17060028TTF  691970-002   N/A    N/A
+N/A       APF17060028U24  691970-002   N/A    N/A
+N/A       APF17060028G51  691970-002   N/A    N/A
+
+======================================================
+
+TABLE: BBU
+location  serial_number  part_number  capacity  charge  age  temperature  health
+--------  -------------  -----------  --------  ------  ---  -----------  ------
+268       FullyCharged   N/A          N/A       N/A     N/A  N/A          N/A
+281       FullyCharged   N/A          N/A       N/A     N/A  N/A          N/A
+OK        OK             N/A          N/A       N/A     N/A  N/A          N/A
+
+======================================================
+
+TABLE: Fans
+location                part_number  Model  health
+----------------------  -----------  -----  ------
+hw_node:0,hw_nodefan:0  OK           N/A    N/A
+hw_node:0,hw_nodefan:2  OK           N/A    N/A
+hw_node:0,hw_nodefan:4  OK           N/A    N/A
+
+4) Errors:
+
+Timestamp;Severity;Component;CodeOrPhrase;Message;Source;KB
+2025-06-23 13:17:43;Critical;HostPort;0x1209;[hit] 2025-06-23 13:17:43.39 MSK 0 12887 Notification Debug Notification undefined General Port 0:0:2 - gfc_init_abort_cb, Failed to abort sc 0xffff8802f237de80 cx_id 0x1209 ox_id 0x235 rx_id 0x0 status 0x24 ex_status 0x6;HPE 3PAR 8200.tbz2:2554520;N/A
+2025-06-23 13:17:43;Critical;HostPort;0x317;[hit] 2025-06-23 13:17:43.39 MSK 0 13791 Notification Debug Notification undefined General Port 0:0:2 - gfc_init_abort_cb, Failed to abort sc 0xffff8802f21356a0 cx_id 0x12eb ox_id 0x317 rx_id 0x0 status 0x24 ex_status 0x6;HPE 3PAR 8200.tbz2:2555425;N/A
+2025-06-16 05:19:06;Critical;Other;FailS;[ctx-] 0188 2025-06-16 05:19:06.81 EA FPGA BIOS FailSafe: 16;HPE 3PAR 8200.tbz2:57641;N/A
+2025-06-16 05:18:51;Critical;Other;Panic;[hit] 0187 2025-06-16 05:18:51.78 CA Panic Panic Main CPU by Sys RC:0x12 N#1;HPE 3PAR 8200.tbz2:57642;N/A
+2025-06-21 15:34:02;Critical;HostPort;FAILOVER;[hit] 2025-06-21 15:34:02 MSK;TPDSTRUCTMSG;CSUT;ERR_PORTFAILOVER;1:0:1;active;;Port 1:0:1 has failover state active.;HPE 3PAR 8200.tbz2:2341519;N/A
+2025-06-21 15:34:02;Critical;HostPort;FAILOVER;[ctx+] 2025-06-21 15:34:02 MSK;TPDSTRUCTMSG;CSUT;ERR_PORTFAILOVER;1:2:1;active;;Port 1:2:1 has failover state active.;HPE 3PAR 8200.tbz2:2341520;N/A
+2025-06-21 15:34:02;Critical;HostPort;failover;[hit] 2025-06-21 15:34:02 MSK;TPDSTRUCTMSG;CSUT;ERR_PORTFAILACT;;Persistent port failovers are still active.;HPE 3PAR 8200.tbz2:2341522;N/A

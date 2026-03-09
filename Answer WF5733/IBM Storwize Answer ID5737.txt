@@ -1,0 +1,56 @@
+﻿1) Parser metadata:
+   - LLM: deepseek-r1:32b-qwen-distill-fp16
+   - Timestamp (MSK): 11:45:14 09-03-2026 (MSK)
+
+2) Hardware identification:
+Vendor: IBM
+Class: Storage
+Model: Storwize V3700
+
+TABLE: Enclosures
+enclosure_id  product_MTM  serial_number  FRU_part_number  FRU_identity
+------------  -----------  -------------  ---------------  ----------------------
+1             2072-24C     7861185        00Y2422          11S00Y2441YM13BG4AX060
+1             2072-24E     7857426        00Y2422          11S00Y2441YM13BG4A906N
+1             2072-24E     7857438        00Y2422          11S00Y2441YM13BG4A9082
+1             2072-24E     7857416        N/A              11S00Y2441YM13BG4A901V
+1             2072-24E     7857407        N/A              11S00Y2441YM13BG4AA003
+
+======================================================
+
+TABLE: Controllers
+controller_type_sas  supported_topologies  oem_key  capacity
+-------------------  --------------------  -------  -------------
+yes                  standard              ibm      1197851279360
+
+3) Component status:
+
+TABLE: Disks
+N/A
+
+======================================================
+
+TABLE: PowerSupplies
+N/A
+
+======================================================
+
+TABLE: SFP
+N/A
+
+======================================================
+
+TABLE: BBU
+location  serial_number           part_number  capacity  charge  age  temperature  health
+--------  ----------------------  -----------  --------  ------  ---  -----------  ------
+Ctlr A    11S00Y4594YM12ZR1910D2  00Y4643      N/A       100%    N/A  33.4C        active
+
+======================================================
+
+TABLE: Fans
+N/A
+
+4) Errors:
+
+Timestamp;Severity;Component;CodeOrPhrase;Message;Source;KB
+2025-04-14 02:26:16;Critical;HostPort;Authentication failed;[hit] 2025-04-14 02:26:16.523+00:00 com.ibm.svc.sat.authentication.LoginAction authenticate [tid=25177] localhost IP Catch Execute Exception com.ibm.svc.cache.cli.commands.CLIResult$CLIResultException: CMMVC8045E Authentication failed.;IBM Storwize.tgz:908097-99;N/A

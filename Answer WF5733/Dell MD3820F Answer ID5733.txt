@@ -1,0 +1,99 @@
+﻿1) Parser metadata:
+   - LLM: deepseek-r1:32b-qwen-distill-fp16
+   - Timestamp (MSK): 11:23:11 09-03-2026 (MSK)
+
+2) Hardware identification:
+Vendor: EMC
+Class: Storage
+Model: MD3800f
+
+TABLE: Enclosures
+N/A
+
+======================================================
+
+TABLE: Controllers
+N/A
+
+3) Component status:
+
+TABLE: Disks
+Position  SerialNumber  PartNumber       Vendor   Size         Online
+--------  ------------  ---------------  -------  -----------  -------
+0:0:0     N/A           AL15SEB18EQY     TOSHIBA  1671.216 GB  Unknown
+0:0:1     N/A           ST1800MM0198     SEAGATE  1671.216 GB  Unknown
+0:0:2     N/A           AL15SEB18EQY     TOSHIBA  1671.216 GB  Unknown
+0:0:3     N/A           AL15SEB18EQY     TOSHIBA  1671.216 GB  Unknown
+0:0:4     N/A           ST1800MM0198     SEAGATE  1671.216 GB  Unknown
+0:0:5     N/A           ST1800MM0198     SEAGATE  1671.216 GB  Unknown
+0:0:6     N/A           AL15SEB18EQY     TOSHIBA  1671.216 GB  Unknown
+0:0:7     N/A           ST1800MM0198     SEAGATE  1671.216 GB  Unknown
+0:0:8     N/A           ST1800MM0198     SEAGATE  1671.216 GB  Unknown
+0:0:9     N/A           HUC101818CS4204  HGST     1676.216 GB  Unknown
+0:0:10    N/A           ST1800MM0198     SEAGATE  1671.216 GB  Unknown
+0:0:11    N/A           ST1800MM0198     SEAGATE  1671.216 GB  Unknown
+0:0:12    N/A           ST1800MM0198     SEAGATE  1671.216 GB  Unknown
+0:0:13    N/A           ST1800MM0198     SEAGATE  1676.216 GB  Unknown
+0:0:14    N/A           AL15SEB18EQY     TOSHIBA  1671.216 GB  Unknown
+0:0:15    N/A           ST1800MM0198     SEAGATE  1671.216 GB  Unknown
+0:0:16    N/A           ST1800MM0198     SEAGATE  1676.216 GB  Unknown
+0:0:17    N/A           ST1800MM0198     SEAGATE  1676.216 GB  Unknown
+0:0:18    N/A           ST1800MM0198     SEAGATE  1676.216 GB  Unknown
+
+======================================================
+
+TABLE: PowerSupplies
+Enclosure                                               location  serial_number  part_number  Power Watt  health
+----------------------------------------  --------  -------------  -----------  ----------  ------
+Enclosure 0, Power Supply/Cooling Fan module 2, Slot 1  Optimal   N/A            N/A          N/A         N/A
+
+======================================================
+
+TABLE: SFP
+location         serial_number       part_number  Model  health
+---------------  ------------------  -----------  -----  ------
+SN 7578071G0224  QL-EP8324           N/A          N/A    N/A
+SN 7578071G0342  QL-EP8324           N/A          N/A    N/A
+PXQ2A7G          0HFPGK              N/A          N/A    N/A
+PXQ2AE5          0HFPGK              N/A          N/A    N/A
+PXQ29QY          0HFPGK              N/A          N/A    N/A
+PXQ2847          0HFPGK              N/A          N/A    N/A
+FTLF8529P3BCV    D668J               N/A          N/A    N/A
+021713029981     PN 110-00408        N/A          N/A    N/A
+021713027282     PN 110-00408        N/A          N/A    N/A
+CN716157482546   Not Available       N/A          N/A    N/A
+CN71615748262E   Not Available       N/A          N/A    N/A
+SN 021712005208  Not Available       N/A          N/A    N/A
+SN 021712005182  Not Available       N/A          N/A    N/A
+W3Z0NGXB         Not Available       N/A          N/A    N/A
+W3Z0NGPC         Not Available       N/A          N/A    N/A
+W3Z0PYHX         Not Available       N/A          N/A    N/A
+W3Z0NGL2         Not Available       N/A          N/A    N/A
+W3Z0NGGG         Not Available       N/A          N/A    N/A
+W3Z0PZ19         Not Available       N/A          N/A    N/A
+W3Z0NGPS         Not Available       N/A          N/A    N/A
+W3Z0NGWE         Not Available       N/A          N/A    N/A
+W3Z0NGNC         Not Available       N/A          N/A    N/A
+W3Z0Q4M7         Not Available       N/A          N/A    N/A
+Y170A03TFQZF     SH572128LSI28EP2SF  N/A          N/A    N/A
+61Q0A0YLFQZF     SH572128LSI28EP2SF  N/A          N/A    N/A
+61Q0A0Z1FQZF     SH572128LSI28EP2SF  N/A          N/A    N/A
+Z0D0A12ZFQZF     SH572128LSI28EP2SF  N/A          N/A    N/A
+Z0H0A05ZFQZF     SH572128LSI28EP2SF  N/A          N/A    N/A
+
+======================================================
+
+TABLE: BBU
+N/A
+
+======================================================
+
+TABLE: Fans
+location                                                part_number  Model  health
+----------------------------------------  -----------  -----  ------
+Enclosure 0, Power Supply/Cooling Fan module 2, Slot 1  Optimal      N/A    N/A
+Enclosure 0, Power Supply/Cooling Fan module 2, Slot 2  Optimal      N/A    N/A
+
+4) Errors:
+
+N/A

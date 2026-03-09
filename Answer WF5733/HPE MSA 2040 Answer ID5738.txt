@@ -1,0 +1,85 @@
+﻿1) Parser metadata:
+   - LLM: deepseek-r1:32b-qwen-distill-fp16
+   - Timestamp (MSK): 11:52:17 09-03-2026 (MSK)
+
+2) Hardware identification:
+Vendor: HPE
+Class: Storage
+Model: MSA 2040 SAN
+
+TABLE: Enclosures
+Enclosure ID  WWN               Vendor  Model        Midplane Type  Health
+------------  ----------------  ------  -----------  -------------  ------
+1             500C0FF02597883C  HP      SPS-CHASSIS  2U24-6Gv2      OK
+
+======================================================
+
+TABLE: Controllers
+Controller ID  Serial Number  Status
+-------------  -------------  -----------
+A              7CE505P061     Operational
+B              7CE530M017     Operational
+
+3) Component status:
+
+TABLE: Disks
+Position  SerialNumber  PartNumber  Vendor  Size      Online
+--------  ------------  ----------  ------  --------  ------
+1.1       0QVE5AEA      N/A         HP      400.0GB   Online
+1.2       0QVGBNVA      N/A         HP      400.0GB   Online
+1.3       0QVGBPKA      N/A         HP      400.0GB   Online
+1.4       0QVGGJJA      N/A         HP      400.0GB   Online
+1.5       05V0AXHK      N/A         HP      900.1GB   Online
+1.6       05V0EWTH      N/A         HP      900.1GB   Online
+1.7       05V0E39H      N/A         HP      900.1GB   Online
+1.8       05V0D0PK      N/A         HP      900.1GB   Online
+1.9       05V0BZ1K      N/A         HP      900.1GB   Online
+1.10      WFKAXP48      N/A         HPE     1200.2GB  Online
+1.11      05G0JEYH      N/A         HP      900.1GB   Online
+1.12      05GJ137B      N/A         HP      900.1GB   Online
+1.13      05GJ7BGB      N/A         HP      900.1GB   Online
+1.14      05V0AU0K      N/A         HP      900.1GB   Online
+1.15      05V09NLK      N/A         HP      900.1GB   Online
+1.16      05V0EWHH      N/A         HP      900.1GB   Online
+1.17      WFK4N4AG      N/A         HP      1200.2GB  Online
+1.18      WFK4MXHW      N/A         HP      1200.2GB  Online
+
+======================================================
+
+TABLE: PowerSupplies
+Enclosure  location     serial_number  part_number  Power Watt  health
+---------  -----------  -------------  -----------  ----------  ------
+1          PSU 1 Left   OK             N/A          N/A         N/A
+1          PSU 2 Right  OK             N/A          N/A         N/A
+
+======================================================
+
+TABLE: SFP
+N/A
+
+======================================================
+
+TABLE: BBU
+location  serial_number  part_number  capacity  charge  age  temperature  health
+--------  -------------  -----------  --------  ------  ---  -----------  ------
+Ctlr A    N/A            N/A          "91%"     OK      N/A  N/A          N/A
+Ctlr B    N/A            N/A          "94%"     OK      N/A  N/A          N/A
+
+======================================================
+
+TABLE: Fans
+location             part_number  Model  health
+-------------------  -----------  -----  ------
+Enclosure 1 - Left   N/A          N/A    Up
+Enclosure 1 - Right  N/A          N/A    Up
+
+4) Errors:
+
+Timestamp;Severity;Component;CodeOrPhrase;Message;Source;KB
+2025-10-21 14:45:31;Warning;Other;WARN;WARNING: cert is self signed.;HPE MSA 2040.zip:237159;N/A
+2025-10-20 16:55:39;Minor;Other;hang;Brand not read or changed, not starting snmp;HPE MSA 2040.zip:237380;N/A
+2025-10-20 16:55:19;Minor;Other;hang;managedLogsEnable Changed oldValue 1 newValue 0;HPE MSA 2040.zip:27982;N/A
+2025-10-20 16:55:19;Minor;Other;hang;Brand not read or changed, not starting sfcb;HPE MSA 2040.zip:237377;N/A
+2025-10-20 16:54:38;Critical;Controller;FAILOVER;decoding brand SC_CONTROLLER_B|SC_OS_FAILOVER|SC_POST_UP(0x7f)|GLS210R04-01||SC_PFU_ON|SC_SINGLE_CONTROLLER|SC_OTHER_MISSING|other:SC_FS_DOWN|other:SC_FR_HEARTBEAT_LOST|this:SC_FS_ACTIVE_ACTIVE|this:SC_FR_NA|oui:OEM_OUI_SOURCE_MIDPLANE,2,0x000E7F;HPE MSA 2040.zip:237191;N/A
+2025-10-20 16:52:23;Critical;Controller;WARN;Received Prompt Request: WARNING: Default settings will be restored to the controllers and then the Management Controllers will restart. Changes to host interface settings may cause loss of data availability and require some reconfiguration to restore host access to volumes.;HPE MSA 2040.zip:9842;N/A
+2025-10-01 06:11:22;Minor;DiskGroup;reconstruct;A692998 2025-10-01 06:11:22 37 INFORMATIONAL Vdisk reconstruction started. (vdisk: dgA01, SN: 00c0ff25a0390000b3f3c35d00000000) (disk: channel: 0, ID: 19, SN: Z401N47B0000C7439LN6, enclosure: 1, slot: 20);HPE MSA 2040.zip:326678;N/A
